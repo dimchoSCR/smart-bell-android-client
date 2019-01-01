@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Smart Bell Control</string>
+    <string name="upload_melody">Upload melody</string>
 </resources>
