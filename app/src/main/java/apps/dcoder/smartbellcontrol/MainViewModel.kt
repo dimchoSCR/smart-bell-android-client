@@ -5,7 +5,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import apps.dcoder.smartbellcontrol.util.getBytes
+import apps.dcoder.smartbellcontrol.util.getBytesAsync
+import apps.dcoder.smartbellcontrol.util.getFileName
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -14,7 +15,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import java.io.File
+import java.lang.IllegalStateException
 
 private const val BELL_API_BASE_URL = "http://192.168.1.91:8080/"
 
@@ -27,23 +28,28 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
 
     private val bellAPI: SmartBellAPI = retrofit.create(SmartBellAPI::class.java)
 
-    val status = MutableLiveData<String>()
+    private fun sendUploadRequest(fileBytes: ByteArray, fileName: String, mediaType: String?) {
 
-    fun uploadFile(uriToAudioFile: Uri?) {
-        val uriToAudioFileString = uriToAudioFile!!.path
-        Log.d("DK",uriToAudioFileString)
-
-        val indexOfLastSeparator = uriToAudioFileString.lastIndexOf(File.separatorChar)
-        val audioFileName = uriToAudioFileString.substring(indexOfLastSeparator + 1)
-        val mediaType: String? = appContext.contentResolver.getType(uriToAudioFile)
-        val inputStream = appContext.contentResolver.openInputStream(uriToAudioFile)
-        val audioBytes = inputStream.getBytes()
-
-        val requestFile: RequestBody = RequestBody.create(MediaType.parse(mediaType), audioBytes)
-        val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", audioFileName, requestFile)
+        val requestFile: RequestBody = RequestBody.create(MediaType.parse(mediaType), fileBytes)
+        val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", fileName, requestFile)
 
         val retrofitCall: Call<Void> = bellAPI.uploadMelody(filePart)
         retrofitCall.enqueue(this)
+    }
+
+    val status = MutableLiveData<String>()
+
+    fun uploadFile(uriToAudioFile: Uri?) {
+
+        val audioFileName = uriToAudioFile!!.getFileName()
+        val mediaType: String? = appContext.contentResolver.getType(uriToAudioFile)
+
+        val inputStream = appContext
+            .contentResolver
+            .openInputStream(uriToAudioFile) ?: throw IllegalStateException("Can not get input stream from media uri!")
+
+        inputStream.getBytesAsync { fileBytes -> sendUploadRequest(fileBytes, audioFileName, mediaType) }
+
     }
 
     override fun onResponse(call: Call<Void>, response: Response<Void>) {
