@@ -13,7 +13,7 @@ fun Uri.getFileName(): String {
     val uriLastPathSegment = uri.lastPathSegment
     Log.d("DK", uriLastPathSegment)
 
-    val splitLastPathSegment: List<String> = uriLastPathSegment.split(":")
+    val splitLastPathSegment: List<String> = uriLastPathSegment!!.split(":")
     if (splitLastPathSegment.size <= 1 || splitLastPathSegment.size > 2) {
         throw IllegalStateException("Too many parts in split uri segment!")
     }
