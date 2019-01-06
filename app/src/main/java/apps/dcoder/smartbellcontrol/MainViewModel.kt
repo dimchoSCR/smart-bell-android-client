@@ -51,7 +51,10 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
 
         // Sends upload request after melody bytes have been read from the input stream
         // Uses a kotlin extension function
-        inputStream.getBytesAsync { fileBytes -> sendUploadRequest(fileBytes, audioFileName, mediaType) }
+        inputStream.getBytesAsync { fileBytes ->
+            inputStream.close()
+            sendUploadRequest(fileBytes, audioFileName, mediaType)
+        }
 
     }
 
