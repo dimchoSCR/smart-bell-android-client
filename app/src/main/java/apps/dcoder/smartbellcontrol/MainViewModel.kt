@@ -29,10 +29,11 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
     private val bellAPI: SmartBellAPI = retrofit.create(SmartBellAPI::class.java)
 
     private fun sendUploadRequest(fileBytes: ByteArray, fileName: String, mediaType: String?) {
-
+        // Create necessary parameter for the bell api call
         val requestFile: RequestBody = RequestBody.create(MediaType.parse(mediaType), fileBytes)
         val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", fileName, requestFile)
 
+        // Make the async bell api call
         val retrofitCall: Call<Void> = bellAPI.uploadMelody(filePart)
         retrofitCall.enqueue(this)
     }
@@ -40,14 +41,16 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
     val status = MutableLiveData<String>()
 
     fun uploadFile(uriToAudioFile: Uri?) {
-
-        val audioFileName = uriToAudioFile!!.getFileName()
+        // Extract content information from uri
+        val audioFileName = uriToAudioFile!!.getFileName() // Kotlin extension function
         val mediaType: String? = appContext.contentResolver.getType(uriToAudioFile)
 
         val inputStream = appContext
             .contentResolver
             .openInputStream(uriToAudioFile) ?: throw IllegalStateException("Can not get input stream from media uri!")
 
+        // Sends upload request after melody bytes have been read from the input stream
+        // Uses a kotlin extension function
         inputStream.getBytesAsync { fileBytes -> sendUploadRequest(fileBytes, audioFileName, mediaType) }
 
     }
