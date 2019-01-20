@@ -27,6 +27,12 @@ class MainActivity : AppCompatActivity() {
             progressBar.visibility = View.GONE
             tvStatus.text = it
         })
+
+        btnSetAsRingtone.setOnClickListener{
+            progressBar.visibility = View.VISIBLE
+            viewModel.setAsRingtone("The_Stratosphere_MP3.mp3")
+        }
+
     }
 
     private fun pickMelody() {
