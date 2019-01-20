@@ -10,6 +10,7 @@ import apps.dcoder.smartbellcontrol.util.getFileName
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -17,7 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import java.lang.IllegalStateException
 
-private const val BELL_API_BASE_URL = "http://192.168.1.91:8080/"
+private const val BELL_API_BASE_URL = "http://192.168.1.91:8080/melodies/"
 
 class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext), Callback<Void> {
 
@@ -55,6 +56,32 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
             inputStream.close()
             sendUploadRequest(fileBytes, audioFileName, mediaType)
         }
+
+    }
+
+    fun setAsRingtone(melodyName: String) {
+
+        val body: RequestBody = RequestBody.create(MediaType.parse("text/plain"), melodyName)
+        val retrofitCall: Call<ResponseBody> = bellAPI.updateRingtone(body)
+
+        retrofitCall.enqueue(object : Callback<ResponseBody> {
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Log.e("DK", "Setting ringtone failed failed!", t)
+                status.value = "Setting ringtone failed!"
+            }
+
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if(response.isSuccessful) {
+                    Log.d("DK", "Setting ringtone was successful!")
+                    status.value = response.body()!!.string()
+                } else {
+                    Log.d("DK", response.errorBody()!!.string())
+                    status.value = "Error while making request to REST API!"
+                }
+            }
+
+        })
 
     }
 
