@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Smart Bell Control</string>
     <string name="upload_melody">Upload melody</string>
-    <string name="set_as_ringtone">Set as Ringtone</string>
+    <string name="list_all_melodies">List all melodies</string>
 </resources>
