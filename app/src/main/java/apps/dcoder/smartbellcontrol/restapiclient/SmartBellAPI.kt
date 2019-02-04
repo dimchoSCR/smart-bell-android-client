@@ -9,10 +9,12 @@ import retrofit2.http.*
 
 interface SmartBellAPI {
     @Multipart
-    @POST("upload")
+    @POST("melodies/upload")
     fun uploadMelody(@Part file: MultipartBody.Part): Call<Void>
 
-    @PUT("update/ringtone")
+    @PUT("melodies/update/ringtone")
     fun updateRingtone(@Body name: RequestBody): Call<ResponseBody>
 
+    @GET("melodies/")
+    fun getAvailableMelodies(): Call<List<MelodyInfo>>
 }
