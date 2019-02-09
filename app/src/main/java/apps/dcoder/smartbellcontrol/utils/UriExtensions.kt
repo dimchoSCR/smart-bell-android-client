@@ -1,4 +1,4 @@
-package apps.dcoder.smartbellcontrol.util
+package apps.dcoder.smartbellcontrol.utils
 
 import android.net.Uri
 import android.util.Log
