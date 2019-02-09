@@ -1,5 +1,6 @@
 package apps.dcoder.smartbellcontrol.restapiclient
 
+import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -15,5 +16,5 @@ interface SmartBellAPI {
     fun updateRingtone(@Body name: RequestBody): Call<ResponseBody>
 
     @GET("melodies/")
-    fun getAvailableMelodies(): Call<List<MelodyInfo>>
+    fun getAvailableMelodies(): Call<List<RawMelodyInfo>>
 }
