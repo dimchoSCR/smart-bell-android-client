@@ -1,15 +1,16 @@
-package smartbell.restapi.utils;
+package apps.dcoder.smartbellcontrol.restapiclient.model.utils;
+
+import android.content.Context;
+import apps.dcoder.smartbellcontrol.R;
 
 public class AudioUtils {
-
-    public static final String OGG_CONTENT_TYPE= "audio/vorbis";
 
     private static final String[] timeFormatterArray = {"00:", "0", "", ":"};
 
     private static int[] prettifyMilliseconds(long durationMillis) {
-        int unFormattedSeconds = Math.round(durationMillis / 1000f);
-        int hours = unFormattedSeconds / 3600;
-        int unFormattedMinutes = unFormattedSeconds % 3600;
+        long unFormattedSeconds = durationMillis / 1000;
+        int hours = (int) unFormattedSeconds / 3600;
+        int unFormattedMinutes = (int) unFormattedSeconds % 3600;
         int minutes = unFormattedMinutes / 60;
         int seconds = unFormattedMinutes % 60;
 
@@ -21,21 +22,14 @@ public class AudioUtils {
         return timeFormatterArray[digitLength] + timeDigit;
     }
 
-    public static String toHumanReadableDuration(String xmpDMDuration, String contentType) {
+    public static String toHumanReadableDuration(String xmpDMDuration, Context context) {
         if(xmpDMDuration == null) {
-            return "Unknown";
+            return context.getString(R.string.melody_duration_unknown);
         }
 
         // If no '.' symbol exists the original string is returned
         String[] splitDuration = xmpDMDuration.split("\\."); // Sample duration string: 32324.2323
-        // For some reason apache tika parses the xmpDMDuration in seconds for ogg and in milliseconds for mp3
-        long durationWholePartMillis;
-        if(contentType.equalsIgnoreCase(OGG_CONTENT_TYPE)) {
-            durationWholePartMillis = Long.parseLong(splitDuration[0]) * 1000;
-        } else {
-            durationWholePartMillis = Long.parseLong(splitDuration[0]);
-        }
-
+        long durationWholePartMillis = Long.parseLong(splitDuration[0]);
         int[] timeArr = prettifyMilliseconds(durationWholePartMillis);
 
         int seconds = timeArr[0];

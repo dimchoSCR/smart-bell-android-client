@@ -1,44 +1,40 @@
-package smartbell.restapi.utils;
+package apps.dcoder.smartbellcontrol.restapiclient.model.utils;
 
-import java.util.HashMap;
-import java.util.Map;
+
+import android.content.Context;
+import apps.dcoder.smartbellcontrol.R;
+
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 public class FileSizeUtil {
-    private enum FileSizeSuffix {
-        Bytes("B"), KiloBytes("KB"), MegaBytes("MB");
 
-        public String value;
-        FileSizeSuffix(String value) {
-            this.value = value;
-        }
+    private static char getDecimalSeparatorForCurrentLocale() {
+        Locale currentLocale = Locale.getDefault();
+        DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(currentLocale);
+
+        return formatSymbols.getDecimalSeparator();
     }
 
-    private static Map<Long, String> createMap() {
-        Map<Long, String> map =  new HashMap<>();
-
-        map.put(1L, FileSizeSuffix.Bytes.value);
-        map.put(1000L, FileSizeSuffix.KiloBytes.value);
-        map.put(1000000L, FileSizeSuffix.MegaBytes.value);
-
-        return map;
-    }
-    private static Map<Long, String> factorToSuffixMap = createMap();
-
-    private static String prettifyByFactorOf(long factor, long bytes) {
+    private static String prettifyByFactorOf(long factor, long bytes, String sizeSuffix) {
         long wholePart = (int) bytes / factor;
         long remainder = (int) bytes % factor;
         float floatRemainder = remainder / (factor / 10f);
 
-        return wholePart + "." + Math.round(floatRemainder) + " " + factorToSuffixMap.get(factor);
+        return String.valueOf(wholePart) +
+                getDecimalSeparatorForCurrentLocale() +
+                Math.round(floatRemainder) +
+                ' ' +
+               sizeSuffix;
     }
 
-    public static String toHumanReadableSize(long bytes) {
+    public static String toHumanReadableSize(long bytes, Context context) {
         if(bytes < 1000) {
-            return prettifyByFactorOf(1, bytes);
+            return prettifyByFactorOf(1, bytes, context.getString(R.string.byte_suffix));
         } else if (bytes < 1000000) {
-            return prettifyByFactorOf(1000, bytes);
+            return prettifyByFactorOf(1000, bytes, context.getString(R.string.kilo_byte_suffix));
         } else if (bytes < 1000000000L) {
-            return prettifyByFactorOf(1000000, bytes);
+            return prettifyByFactorOf(1000000, bytes, context.getString(R.string.mega_byte_suffix));
         }
 
         throw new IllegalStateException("Too big file size");
