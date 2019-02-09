@@ -1,8 +1,6 @@
 package apps.dcoder.smartbellcontrol.restapiclient.model;
 
-import apps.dcoder.smartbellcontrol.restapiclient.model.utils.FileSizeUtil;
-
-public class MelodyInfo {
+public class RawMelodyInfo {
 
     private String melodyName;
     private String duration;
@@ -11,19 +9,12 @@ public class MelodyInfo {
     private long fileSize;
     private boolean isRingtone;
 
-    private String fileSizeString;
-    private String formattedDuration;
-
     public String getMelodyName() {
         return melodyName;
     }
 
     public void setMelodyName(String melodyName) {
         this.melodyName = melodyName;
-    }
-
-    public String getLocalizedFileSizeString() {
-        return fileSizeString;
     }
 
     public long getFileSize() {
