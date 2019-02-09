@@ -5,10 +5,11 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import apps.dcoder.smartbellcontrol.restapiclient.MelodyInfo
+import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
 import apps.dcoder.smartbellcontrol.restapiclient.SmartBellAPI
-import apps.dcoder.smartbellcontrol.util.getBytesAsync
-import apps.dcoder.smartbellcontrol.util.getFileName
+import apps.dcoder.smartbellcontrol.restapiclient.model.MelodyInfo
+import apps.dcoder.smartbellcontrol.utils.getBytesAsync
+import apps.dcoder.smartbellcontrol.utils.getFileName
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -103,22 +104,27 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
 
     }
 
-    fun getMelodyList() {
-        val retrofitCall: Call<List<MelodyInfo>> = bellAPI.getAvailableMelodies()
-        retrofitCall.enqueue(object : Callback<List<MelodyInfo>> {
-            override fun onFailure(call: Call<List<MelodyInfo>>, t: Throwable) {
-                Log.e("DK", "Getting melody list failed failed!", t)
-                status.value = "Getting melodies failed!"
+    fun loadMelodyList() {
+        val retrofitCall: Call<List<RawMelodyInfo>> = bellAPI.getAvailableMelodies()
+        retrofitCall.enqueue(object : Callback<List<RawMelodyInfo>> {
+            override fun onFailure(call: Call<List<RawMelodyInfo>>, t: Throwable) {
+                Log.e("DK", "Retrieving melody list failed failed!", t)
+                status.value = "Retrieving melodies failed!"
             }
 
-            override fun onResponse(call: Call<List<MelodyInfo>>, response: Response<List<MelodyInfo>>) {
+            override fun onResponse(call: Call<List<RawMelodyInfo>>, response: Response<List<RawMelodyInfo>>) {
                 if(response.isSuccessful) {
                     Log.d("DK", "Retrieving melody list was successful!")
                     status.value = "Retrieving melody list was successful!"
-                    melodyList.value = response.body()
+                    val melodies = response.body()
+                    val localizedMelodies = melodies?.map {
+                            rawMelodyInfo -> formatRawMelodyInfo(appContext, rawMelodyInfo)
+                    } ?: throw Throwable("List of melody info should not be null")
+
+                    melodyList.value = localizedMelodies
                 } else {
                     Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
-                    status.value = "Retrieving because of a server error."
+                    status.value = "Retrieving failed because of a server error."
                 }
             }
         })
