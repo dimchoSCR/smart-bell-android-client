@@ -2,4 +2,10 @@
     <string name="app_name">Smart Bell Control</string>
     <string name="upload_melody">Upload melody</string>
     <string name="list_all_melodies">List all melodies</string>
+    <string name="file_size">Size: %1$s</string>
+    <string name="melody_duration">Duration: %1$s</string>
+    <string name="byte_suffix">B</string>
+    <string name="kilo_byte_suffix">KB</string>
+    <string name="mega_byte_suffix">MB</string>
+    <string name="melody_duration_unknown">Unknown</string>
 </resources>
