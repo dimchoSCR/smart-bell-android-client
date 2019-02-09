@@ -9,24 +9,44 @@ import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 
 private const val CODE_REQUEST_AUDIO_FILE: Int = 1
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val linearLayoutManager = LinearLayoutManager(this)
+        with (rvMelodies) {
+            setHasFixedSize(true)
+            layoutManager = linearLayoutManager
+            adapter = MelodyInfoAdapter(listOf())
+        }
 
         // Opens a song picker window
         btnUploadMelody.setOnClickListener{ pickMelody() }
 
         // Listen for service response
-        val viewModel: MainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         viewModel.status.observe(this, Observer {
             progressBar.visibility = View.GONE
             tvStatus.text = it
         })
+
+        viewModel.melodyList.observe(this, Observer { melodies ->
+            val adapter = rvMelodies.adapter as MelodyInfoAdapter
+            adapter.melodies = melodies
+            adapter.notifyDataSetChanged()
+        })
+
+        btnListMelodies.setOnClickListener {
+            progressBar.visibility = View.VISIBLE
+            viewModel.loadMelodyList()
+        }
 
 //        btnSetAsRingtone.setOnClickListener{
 //            progressBar.visibility = View.VISIBLE
@@ -45,7 +65,6 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == CODE_REQUEST_AUDIO_FILE) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.d("DK", "Melody pick successful")
-                val viewModel: MainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
                 viewModel.uploadFile(data?.data)
                 progressBar.visibility = View.VISIBLE
             } else {
