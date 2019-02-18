@@ -46,4 +46,9 @@ dependencies {
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
     implementation'com.squareup.retrofit2:converter-jackson:2.5.0'
+
+    // WorkerManager
+    def work_version = "1.0.0-rc01"
+
+    implementation "android.arch.work:work-runtime:$work_version" // For Kotlin+Coroutines use work-runtime-ktx
 }
