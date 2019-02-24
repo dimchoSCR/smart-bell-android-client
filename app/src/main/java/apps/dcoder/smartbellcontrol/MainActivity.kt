@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.iid.FirebaseInstanceId
@@ -19,12 +20,41 @@ private const val CODE_REQUEST_AUDIO_FILE: Int = 1
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
+
+    private fun requestGooglePlayServicesAvailability() {
+
+        val googleApiAvailability = GoogleApiAvailability.getInstance()
+        googleApiAvailability.makeGooglePlayServicesAvailable(this)
+            .addOnSuccessListener {
+                // Initialize firebase cloud messaging
+                FirebaseApp.initializeApp(this)
+
+                // Log current token
+                FirebaseInstanceId.getInstance().instanceId
+                    .addOnCompleteListener(OnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            Log.w("DK", "getInstanceId failed", task.exception)
+                            return@OnCompleteListener
+                        }
+
+                        // Get new Instance ID token
+                        val token = task.result?.token
+
+                        // Log and toast
+                        val msg ="Current firebase token: $token"
+                        Log.e("DK", msg)
+                        Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                    })
+            }
+            .addOnFailureListener { finish() }
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize firebase cloud messaging
-        FirebaseApp.initializeApp(this)
+        requestGooglePlayServicesAvailability()
 
         val linearLayoutManager = LinearLayoutManager(this)
         with (rvMelodies) {
@@ -58,23 +88,11 @@ class MainActivity : AppCompatActivity() {
 //            progressBar.visibility = View.VISIBLE
 //            viewModel.setAsRingtone("The_Stratosphere_MP3.mp3")
 //        }
+    }
 
-        FirebaseInstanceId.getInstance().instanceId
-            .addOnCompleteListener(OnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("DK", "getInstanceId failed", task.exception)
-                    return@OnCompleteListener
-                }
-
-                // Get new Instance ID token
-                val token = task.result?.token
-
-                // Log and toast
-                val msg ="Current firebase token: $token"
-                Log.e("DK", msg)
-                Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-            })
-
+    override fun onResume() {
+        super.onResume()
+        requestGooglePlayServicesAvailability()
     }
 
     private fun pickMelody() {
