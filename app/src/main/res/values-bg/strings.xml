@@ -1,0 +1,14 @@
+<resources>
+    <string name="fcm_topic_name" translatable="false">RingUpdates</string>
+    <string name="upload_melody">Качи мелодия</string>
+    <string name="list_all_melodies">Вземи всички мелодии</string>
+    <string name="file_size">Размер: %1$s</string>
+    <string name="melody_duration">Продължителност: %1$s</string>
+    <string name="byte_suffix">B</string>
+    <string name="kilo_byte_suffix">KB</string>
+    <string name="mega_byte_suffix">MB</string>
+    <string name="melody_duration_unknown">Неопределена</string>
+    <string name="ring_notification_title">Умен звънец</string>
+    <string name="ring_notification_content">Дзън, Дзън … Има някого на вратата ти!</string>
+    <string name="ring_notification_channel_description">Този канал ще получава известия, когато някого позвъни на вашия умен звънец</string>
+</resources>

@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">Smart Bell Control</string>
+    <string name="app_name" translatable="false">Smart Bell Control</string>
+    <string name="fcm_topic_name" translatable="false">RingUpdates</string>
     <string name="upload_melody">Upload melody</string>
     <string name="list_all_melodies">List all melodies</string>
     <string name="file_size">Size: %1$s</string>
@@ -8,4 +9,7 @@
     <string name="kilo_byte_suffix">KB</string>
     <string name="mega_byte_suffix">MB</string>
     <string name="melody_duration_unknown">Unknown</string>
+    <string name="ring_notification_title">Smart bell</string>
+    <string name="ring_notification_content">Ring, Ring … Someone\'s at your door!</string>
+    <string name="ring_notification_channel_description">This channel will receive notifications when someone rings on your smart bell</string>
 </resources>

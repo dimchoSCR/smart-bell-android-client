@@ -5,8 +5,9 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
+import apps.dcoder.smartbellcontrol.restapiclient.RetrofitAPIs
 import apps.dcoder.smartbellcontrol.restapiclient.SmartBellAPI
+import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
 import apps.dcoder.smartbellcontrol.restapiclient.model.MelodyInfo
 import apps.dcoder.smartbellcontrol.utils.getBytesAsync
 import apps.dcoder.smartbellcontrol.utils.getFileName
@@ -17,20 +18,11 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import java.lang.IllegalStateException
-
-private const val BELL_API_BASE_URL = "http://192.168.1.91:8080/"
 
 class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
 
-    private val retrofit: Retrofit = Retrofit.Builder()
-         .baseUrl(BELL_API_BASE_URL)
-         .addConverterFactory(JacksonConverterFactory.create())
-         .build()
-
-    private val bellAPI: SmartBellAPI = retrofit.create(SmartBellAPI::class.java)
+    private val bellAPI: SmartBellAPI = RetrofitAPIs.bellAPI
 
     private fun sendUploadRequest(fileBytes: ByteArray, fileName: String, mediaType: String?) {
         // Create necessary parameter for the bell api call
@@ -38,7 +30,7 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
         val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", fileName, requestFile)
 
         // Make the async bell api call
-        val retrofitCall: Call<Void> = bellAPI.uploadMelody(filePart)
+        val retrofitCall: Call<Void> = RetrofitAPIs.bellAPI.uploadMelody(filePart)
         retrofitCall.enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if(response.isSuccessful) {

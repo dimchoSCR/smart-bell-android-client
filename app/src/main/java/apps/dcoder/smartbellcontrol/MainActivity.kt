@@ -4,50 +4,54 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import apps.dcoder.smartbellcontrol.prefs.PreferenceKeys
+import apps.dcoder.smartbellcontrol.services.BellFirebaseMessagingService
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 private const val CODE_REQUEST_AUDIO_FILE: Int = 1
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
 
-    private fun requestGooglePlayServicesAvailability() {
+    private fun initializePushNotificationService() {
+        // Initialize firebase cloud messaging
+        FirebaseApp.initializeApp(this)
+        Log.d("FirebaseDK", "Initialized firebase for app")
+    }
+
+    private fun requestGooglePlayServicesAvailability(reinitializeFCM: Boolean = true) {
 
         val googleApiAvailability = GoogleApiAvailability.getInstance()
         googleApiAvailability.makeGooglePlayServicesAvailable(this)
             .addOnSuccessListener {
-                // Initialize firebase cloud messaging
-                FirebaseApp.initializeApp(this)
-
-                // Log current token
-                FirebaseInstanceId.getInstance().instanceId
-                    .addOnCompleteListener(OnCompleteListener { task ->
-                        if (!task.isSuccessful) {
-                            Log.w("DK", "getInstanceId failed", task.exception)
-                            return@OnCompleteListener
-                        }
-
-                        // Get new Instance ID token
-                        val token = task.result?.token
-
-                        // Log and toast
-                        val msg ="Current firebase token: $token"
-                        Log.e("DK", msg)
-                        Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    })
+                if (reinitializeFCM) {
+                    initializePushNotificationService()
+                }
             }
             .addOnFailureListener { finish() }
 
+    }
+
+    private fun generateAndStoreAppInstanceGUID() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        if (!sharedPreferences.contains(PreferenceKeys.PREFERENCE_KEY_APP_GUID)) {
+            val appGUID = UUID.randomUUID().toString()
+            sharedPreferences.edit()
+                .putString(PreferenceKeys.PREFERENCE_KEY_APP_GUID, appGUID)
+                .apply()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         requestGooglePlayServicesAvailability()
+        generateAndStoreAppInstanceGUID()
 
         val linearLayoutManager = LinearLayoutManager(this)
         with (rvMelodies) {
@@ -92,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        requestGooglePlayServicesAvailability()
+        requestGooglePlayServicesAvailability(false)
     }
 
     private fun pickMelody() {
