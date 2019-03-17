@@ -12,4 +12,26 @@
     <string name="ring_notification_title">Smart bell</string>
     <string name="ring_notification_content">Ring, Ring … Someone\'s at your door!</string>
     <string name="ring_notification_channel_description">This channel will receive notifications when someone rings on your smart bell</string>
+    <string name="week_days_list_pref_summary">Select when do not disturb mode will be active</string>
+    <string name="week_days_list_pref_title">Days</string>
+    <string name="settings">Settings</string>
+    <string name="pref_title_do_not_disturb">Do Not Disturb</string>
+    <string-array name="week_days_list_pref_entries_arr">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <string-array name="week_days_list_pref_values_arr">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
 </resources>

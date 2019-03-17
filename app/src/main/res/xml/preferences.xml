@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    <androidx.preference.Preference
+        app:key="tag_do_not_disturb_prefs"
+        app:title="@string/pref_title_do_not_disturb"
+        app:fragment="apps.dcoder.smartbellcontrol.prefs.DoNotDisturbPrefFragment" />
+</androidx.preference.PreferenceScreen>

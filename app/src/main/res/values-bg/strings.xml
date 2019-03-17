@@ -11,4 +11,17 @@
     <string name="ring_notification_title">Умен звънец</string>
     <string name="ring_notification_content">Дзън, Дзън … Има някого на вратата ти!</string>
     <string name="ring_notification_channel_description">Този канал ще получава известия, когато някого позвъни на вашия умен звънец</string>
+    <string name="week_days_list_pref_summary">Изберете, кога да бъде активен режимът: \"Не ме безпокойте\"</string>
+    <string name="week_days_list_pref_title">Дни</string>
+    <string name="settings">Настройки</string>
+    <string name="pref_title_do_not_disturb">Режим Не ме безпокойте</string>
+    <string-array name="week_days_list_pref_entries_arr">
+        <item>Понеделник</item>
+        <item>Вторник</item>
+        <item>Сряда</item>
+        <item>Четвъртък</item>
+        <item>Петък</item>
+        <item>Събота</item>
+        <item>Неделя</item>
+    </string-array>
 </resources>
