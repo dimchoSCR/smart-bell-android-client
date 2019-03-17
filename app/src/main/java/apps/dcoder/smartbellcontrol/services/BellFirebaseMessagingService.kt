@@ -21,14 +21,14 @@ import apps.dcoder.smartbellcontrol.work.Workers
 
 class BellFirebaseMessagingService : FirebaseMessagingService() {
 
-    private lateinit var notificationManager: NotificationManager
+    private lateinit var notifier: Notifier
 
     private enum class NotificationType {
         RING, MESSAGE
     }
 
     override fun onCreate() {
-        notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notifier = Notifier()
     }
 
     companion object {
@@ -39,22 +39,45 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         private const val REQUEST_CODE_GO_TO_LOG = 15
     }
 
-    private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = NOTIFICATION_CHANNEL_NAME
-            val descriptionText = getString(R.string.ring_notification_channel_description)
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-                enableLights(true)
-                lightColor = Color.BLUE
-                enableVibration(true)
-                setImportance(importance)
-            }
+    private inner class Notifier {
+        private val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            notificationManager.createNotificationChannel(channel)
+        fun createNotificationChannel() {
+            // Create the NotificationChannel, but only on API 26+ because
+            // the NotificationChannel class is new and not in the support library
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val name = NOTIFICATION_CHANNEL_NAME
+                val descriptionText = getString(R.string.ring_notification_channel_description)
+                val importance = NotificationManager.IMPORTANCE_HIGH
+                val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
+                    description = descriptionText
+                    enableLights(true)
+                    lightColor = Color.BLUE
+                    enableVibration(true)
+                    setImportance(importance)
+                }
+
+                notificationManager.createNotificationChannel(channel)
+            }
+        }
+
+        fun constructNotification(title: String?, contentText: String?): Notification {
+            createNotificationChannel()
+
+            return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID).apply {
+                setSmallIcon(R.drawable.ic_ring_app_color_primary_24dp)
+                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                setVibrate(longArrayOf(1000, 1000))
+                setContentTitle(title)
+                setAutoCancel(true)
+                setContentText(contentText)
+                setContentIntent(createPendingIntent<MainActivity>())
+                priority = NotificationCompat.PRIORITY_HIGH
+            }.build()
+        }
+
+        fun notifyUser(notificationId: Int, notification: Notification) {
+            notificationManager.notify(notificationId, notification)
         }
     }
 
@@ -66,21 +89,6 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
             intentToLog,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
-    }
-
-    private fun constructNotification(title: String?, contentText: String?): Notification {
-        createNotificationChannel()
-
-        return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID).apply {
-            setSmallIcon(R.drawable.ic_ring_app_color_primary_24dp)
-            setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            setVibrate(longArrayOf(1000, 1000))
-            setContentTitle(title)
-            setAutoCancel(true)
-            setContentText(contentText)
-            setContentIntent(createPendingIntent<MainActivity>())
-            priority = NotificationCompat.PRIORITY_HIGH
-        }.build()
     }
 
     private fun processDataPayload(data: MutableMap<String, String>) {
@@ -96,12 +104,12 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FirebaseDK", "Notification type: $notificationType")
         when (notificationType) {
             NotificationType.RING -> {
-                val notification = constructNotification(
+                val notification = notifier.constructNotification(
                     getString(R.string.ring_notification_title),
                     getString(R.string.ring_notification_content)
                 )
 
-                notificationManager.notify(NOTIFICATION_ID, notification)
+                notifier.notifyUser(NOTIFICATION_ID, notification)
                 Log.d("FirebaseDK", "Notification constructed from data message")
             }
 
