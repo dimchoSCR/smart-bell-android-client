@@ -3,13 +3,13 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.preference.MultiSelectListPreference app:key="week_days_list_pref"
-        app:entries="@array/week_days_list_pref_entries_arr"
-        app:entryValues="@array/week_days_list_pref_values_arr"
-        app:defaultValue="@array/week_days_list_pref_values_arr"
-        app:summary="@string/week_days_list_pref_summary"
-        app:title="@string/week_days_list_pref_title"
-        app:dialogTitle="@string/week_days_list_pref_title"
-        app:persistent="false" />
+    <androidx.preference.MultiSelectListPreference android:key="week_days_list_pref"
+        android:entries="@array/week_days_list_pref_entries_arr"
+        android:entryValues="@array/week_days_list_pref_values_arr"
+        android:defaultValue="@array/week_days_list_pref_values_arr"
+        android:summary="@string/week_days_list_pref_summary"
+        android:title="@string/week_days_list_pref_title"
+        android:dialogTitle="@string/week_days_list_pref_title"
+        android:persistent="false" />
 
 </androidx.preference.PreferenceScreen>
