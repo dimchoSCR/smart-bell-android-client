@@ -32,7 +32,7 @@
         <item>Saturday</item>
         <item>Sunday</item>
     </string-array>
-    <string-array name="week_days_list_pref_values_arr">
+    <integer-array name="week_days_list_pref_values_arr">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -40,5 +40,5 @@
         <item>4</item>
         <item>5</item>
         <item>6</item>
-    </string-array>
+    </integer-array>
 </resources>
