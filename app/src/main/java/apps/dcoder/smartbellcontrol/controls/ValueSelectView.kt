@@ -2,6 +2,7 @@ package apps.dcoder.smartbellcontrol.controls
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.LinearLayout
@@ -24,14 +25,25 @@ class ValueSelectView(context: Context, attrs: AttributeSet): LinearLayout(conte
 
     init {
         val xmlAttributes: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.ValueSelectView, 0, 0)
+        tvDescription.layoutParams = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         tvTitle.text = xmlAttributes.getText(R.styleable.ValueSelectView_title)
         tvDescription.text = xmlAttributes.getText(R.styleable.ValueSelectView_description)
         xmlAttributes.recycle()
     }
 
-    public var description: CharSequence = tvDescription.text
+    var description: CharSequence = tvDescription.text
         set(value){
             field = value
             tvDescription.text = value
         }
+
+    fun setError(text: CharSequence?) {
+        tvDescription.isFocusableInTouchMode = true
+        tvDescription.requestFocus()
+        tvDescription.error = text
+    }
+
+    fun hasError(): Boolean {
+        return tvDescription.error != null && tvDescription.error.isNotEmpty()
+    }
 }

@@ -1,5 +1,6 @@
 package apps.dcoder.smartbellcontrol.restapiclient
 
+import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
 import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
 import apps.dcoder.smartbellcontrol.restapiclient.model.RawRingEntry
 import okhttp3.MultipartBody
@@ -27,4 +28,17 @@ interface SmartBellAPI {
     @FormUrlEncoded
     @PUT("notifications/register")
     fun registerAppForPushNotifications(@FieldMap params: Map<String, String>): Call<Void>
+
+    @FormUrlEncoded
+    @PUT("melodies/donotdisturb/rules")
+    fun scheduleDoNotDisturb(
+        @Field("days") days: ArrayList<Int>,
+        @Field("startTime") startTime: Long,
+        @Field("endTime") endTime: Long,
+        @Field("endTomorrow") endTomorrow: Boolean
+    ): Call<Void>
+
+
+    @GET("melodies/donotdisturb/status")
+    fun getDoNotDisturbStatus(): Call<BellStatus.DoNotDisturbStatus>
 }

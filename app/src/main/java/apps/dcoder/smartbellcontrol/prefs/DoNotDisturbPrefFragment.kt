@@ -5,15 +5,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.Toast
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.controls.ValueSelectView
 import apps.dcoder.smartbellcontrol.dialogs.DaysDialogFragment
 import apps.dcoder.smartbellcontrol.dialogs.TimePickerDialogFragment
+import apps.dcoder.smartbellcontrol.utils.TimeExtensions
+import apps.dcoder.smartbellcontrol.viewmodels.SettingsViewModel
 import kotlinx.android.synthetic.main.do_not_disturb_layout.*
 import kotlinx.android.synthetic.main.do_not_disturb_layout.view.*
+import kotlin.collections.ArrayList
 
 class DoNotDisturbPrefFragment: Fragment() {
 
@@ -23,7 +31,7 @@ class DoNotDisturbPrefFragment: Fragment() {
     private val startTimeArr: ArrayList<Int> = arrayListOf()
     private val endTimeArr: ArrayList<Int> = arrayListOf()
 
-    private fun openTimePcikerDialogFragment(fragmentManager: FragmentManager, timeArr: ArrayList<Int>, requestCode: Int) {
+    private fun openTimePickerDialogFragment(fragmentManager: FragmentManager, timeArr: ArrayList<Int>, requestCode: Int) {
         val timePickerDialog = TimePickerDialogFragment.create(timeArr)
         timePickerDialog.setTargetFragment(this, requestCode)
 
@@ -45,11 +53,13 @@ class DoNotDisturbPrefFragment: Fragment() {
 
         when (vsTimePicker.id) {
             R.id.vsStartTime -> {
+                validateTime(timeArrayList, endTimeArr)
                 startTimeArr.clear()
                 startTimeArr.addAll(timeArrayList)
             }
 
             R.id.vsEndTime -> {
+                validateTime(startTimeArr, timeArrayList)
                 endTimeArr.clear()
                 endTimeArr.addAll(timeArrayList)
             }
@@ -65,11 +75,19 @@ class DoNotDisturbPrefFragment: Fragment() {
         vsTimePicker.description = "$hourFormat$hourOfDay:$minuteFormat$minute"
     }
 
-    private fun setDays(daysContent: Array<String>, daysValues: ArrayList<Int>, vsDays: ValueSelectView) {
+    private fun setDays(daysValues: ArrayList<Int>, vsDays: ValueSelectView) {
+        if (daysValues.isEmpty()) {
+            return
+        }
+
+        // Remove TextView error
+        vsDays.setError(null)
+
         dayInputArray.clear()
         dayInputArray.addAll(daysValues)
 
         val shortNameDaysArr = arrayListOf<String>()
+        val daysContent: Array<String> = context!!.resources.getStringArray(R.array.week_days_list_pref_entries_arr)
         for (dayCode in daysValues) {
             shortNameDaysArr.add(daysContent[dayCode].take(3))
         }
@@ -77,6 +95,29 @@ class DoNotDisturbPrefFragment: Fragment() {
         vsDays.description = shortNameDaysArr.joinToString()
     }
 
+    private fun validateTime(startTimeArr: ArrayList<Int>, endTimeArr: ArrayList<Int>): Boolean {
+        // Remove TextView error
+        vsStartTime.setError(null)
+        vsEndTime.setError(null)
+
+        if (startTimeArr.isEmpty() || endTimeArr.isEmpty()) {
+            return true
+        }
+
+        val startTimeMillis = TimeExtensions.extractCurrentTimeUTCMillis(startTimeArr)
+        val endTimeMillis = TimeExtensions.extractCurrentTimeUTCMillis(endTimeArr)
+        if (!cbEndTomorrow.isChecked && endTimeMillis < startTimeMillis) {
+            vsEndTime.setError(getString(R.string.err_smaller_end_time))
+            return false
+        }
+
+        if (startTimeMillis == endTimeMillis) {
+            vsEndTime.setError(getString(R.string.err_equal_star_end_time))
+            return false
+        }
+
+        return true
+    }
 
     companion object {
         private const val TAG_TIME_PICKER_FRAGMENT = "TimePicker"
@@ -86,19 +127,19 @@ class DoNotDisturbPrefFragment: Fragment() {
         private const val REQUEST_CODE_PICK_END_TIME = 2
         private const val REQUEST_CODE_PICK_DAYS = 3
 
-        private const val EXTRA_DESCRIPTION_DAYS = "ExtraDescriptionDays"
-        private const val EXTRA_DESCRIPTION_START_TIME = "ExtraDescriptionStartTime"
-        private const val EXTRA_DESCRIPTION_END_TIME = "ExtraDescriptionEndTime"
-
         private const val EXTRA_CONTENT_DAYS = "ExtraContentDays"
         private const val EXTRA_CONTENT_START_TIME = "ExtraContentStartTime"
         private const val EXTRA_CONTENT_END_TIME = "ExtraContentEndTime"
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val fragmentView = inflater.inflate(R.layout.do_not_disturb_layout, container, false)
+        return inflater.inflate(R.layout.do_not_disturb_layout, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         if (savedInstanceState != null) {
+
             val contentDays= savedInstanceState.getIntegerArrayList(EXTRA_CONTENT_DAYS)
                 ?: throw IllegalStateException("Missing $EXTRA_CONTENT_DAYS in savedInstanceState!")
             val startTimeArr = savedInstanceState.getIntegerArrayList(EXTRA_CONTENT_START_TIME)
@@ -106,32 +147,17 @@ class DoNotDisturbPrefFragment: Fragment() {
             val endTimeArr = savedInstanceState.getIntegerArrayList(EXTRA_CONTENT_END_TIME)
                 ?: throw IllegalStateException("Missing $EXTRA_CONTENT_END_TIME in savedInstanceState!")
 
-            setDays(
-                context!!.resources.getStringArray(R.array.week_days_list_pref_entries_arr),
-                contentDays,
-                fragmentView.vsDays
-            )
-
-            setTime(startTimeArr, fragmentView.vsStartTime)
-            setTime(endTimeArr, fragmentView.vsEndTime)
-
-            fragmentView.vsDays.description = savedInstanceState.getString(EXTRA_DESCRIPTION_DAYS) as CharSequence
-            fragmentView.vsStartTime.description = savedInstanceState.getString(EXTRA_DESCRIPTION_START_TIME) as CharSequence
-            fragmentView.vsEndTime.description = savedInstanceState.getString(EXTRA_DESCRIPTION_END_TIME) as CharSequence
+            setDays(contentDays, view.vsDays)
+            setTime(startTimeArr, view.vsStartTime)
+            setTime(endTimeArr, view.vsEndTime)
         }
 
-        return fragmentView
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
         view.findViewById<ValueSelectView>(R.id.vsStartTime).setOnClickListener {
-            openTimePcikerDialogFragment(fragmentManager!!, startTimeArr, REQUEST_CODE_PICK_START_TIME)
+            openTimePickerDialogFragment(fragmentManager!!, startTimeArr, REQUEST_CODE_PICK_START_TIME)
         }
 
         view.findViewById<ValueSelectView>(R.id.vsEndTime).setOnClickListener {
-            openTimePcikerDialogFragment(fragmentManager!!, endTimeArr, REQUEST_CODE_PICK_END_TIME)
+            openTimePickerDialogFragment(fragmentManager!!, endTimeArr, REQUEST_CODE_PICK_END_TIME)
         }
 
         view.findViewById<ValueSelectView>(R.id.vsDays).setOnClickListener {
@@ -144,6 +170,70 @@ class DoNotDisturbPrefFragment: Fragment() {
             daysFragmentDialog.setTargetFragment(this, REQUEST_CODE_PICK_DAYS)
             daysFragmentDialog.show(fragmentManager!!, TAG_DAY_PICKER_FRAGMENT)
         }
+
+        view.findViewById<CheckBox>(R.id.cbEndTomorrow).setOnCheckedChangeListener { buttonView, isChecked ->
+            if (validateTime(startTimeArr, endTimeArr)) {
+                view.vsEndTime.setError(null)
+            }
+        }
+
+        val settingsViewModel = ViewModelProviders.of(this).get(SettingsViewModel::class.java)
+        settingsViewModel.getDoNotDisturbStatus()
+
+        view.findViewById<Button>(R.id.btnSave).setOnClickListener {
+            if (dayInputArray.isEmpty()) {
+                view.vsDays.setError(getString(R.string.err_days_not_set))
+                return@setOnClickListener
+            }
+
+            if (startTimeArr.isEmpty()) {
+                view.vsStartTime.setError(getString(R.string.err_start_time_not_set))
+                return@setOnClickListener
+            }
+
+            if (endTimeArr.isEmpty()) {
+                view.vsEndTime.setError(getString(R.string.err_end_time_not_set))
+                return@setOnClickListener
+            }
+
+            if (view.vsDays.hasError() || view.vsStartTime.hasError() || view.vsEndTime.hasError()) {
+                return@setOnClickListener
+            }
+
+            val endTomorrow = view.cbEndTomorrow.isChecked
+            settingsViewModel.setDoNotDisturbMode(dayInputArray, startTimeArr, endTimeArr, endTomorrow)
+        }
+
+        settingsViewModel.getDoNotDisturbSettingsLiveData().observe(this, Observer { bellStatus ->
+            if (bellStatus.days != null) {
+                val daysList = arrayListOf<Int>()
+                for (i in 0 until bellStatus.days!!.size) {
+                    daysList.add(bellStatus.days!![i])
+                }
+
+                setDays(daysList, view.vsDays)
+            }
+
+            if (bellStatus.endTimeMillis != -1L && bellStatus.startTimeMillis != -1L) {
+                val startTimeArray = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.startTimeMillis)
+                setTime(startTimeArray, view.vsStartTime)
+                val endTimeArray = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.endTimeMillis)
+                setTime(endTimeArray, view.vsEndTime)
+            }
+
+            view.cbEndTomorrow.isChecked = bellStatus.isEndTomorrow
+            view.ltLoad.visibility = View.GONE
+            view.tvError.text = ""
+        })
+
+        settingsViewModel.getSuccessLiveData().observe(this, Observer {
+            Toast.makeText(context!!, it.toString(), Toast.LENGTH_LONG).show()
+        })
+
+        settingsViewModel.getErrorLiveData().observe(this, Observer {
+            view.tvError.text = it
+            view.pbLoading.visibility = View.GONE
+        })
     }
 
 
@@ -165,10 +255,8 @@ class DoNotDisturbPrefFragment: Fragment() {
                     throw IllegalStateException("Missing integer extras: days of week!")
                 }
 
-                val weekDaysArray = context!!.resources.getStringArray(R.array.week_days_list_pref_entries_arr)
                 val selectedDays = data.getIntegerArrayListExtra(DaysDialogFragment.EXTRA_SELECTED_DAYS)
-
-                setDays(weekDaysArray, selectedDays, vsDays)
+                setDays(selectedDays, vsDays)
             }
         }
     }
@@ -177,9 +265,5 @@ class DoNotDisturbPrefFragment: Fragment() {
         outState.putIntegerArrayList(EXTRA_CONTENT_DAYS, dayInputArray)
         outState.putIntegerArrayList(EXTRA_CONTENT_START_TIME, startTimeArr)
         outState.putIntegerArrayList(EXTRA_CONTENT_END_TIME, endTimeArr)
-
-        outState.putString(EXTRA_DESCRIPTION_DAYS, vsDays.description.toString())
-        outState.putString(EXTRA_DESCRIPTION_START_TIME, vsStartTime.description.toString())
-        outState.putString(EXTRA_DESCRIPTION_END_TIME, vsEndTime.description.toString())
     }
 }

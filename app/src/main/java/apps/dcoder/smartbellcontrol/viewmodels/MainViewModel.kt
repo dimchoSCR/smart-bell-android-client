@@ -1,10 +1,11 @@
-package apps.dcoder.smartbellcontrol
+package apps.dcoder.smartbellcontrol.viewmodels
 
 import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import apps.dcoder.smartbellcontrol.formatRawMelodyInfo
 import apps.dcoder.smartbellcontrol.restapiclient.RetrofitAPIs
 import apps.dcoder.smartbellcontrol.restapiclient.SmartBellAPI
 import apps.dcoder.smartbellcontrol.restapiclient.model.RawMelodyInfo
@@ -18,6 +19,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.InputStream
 import java.lang.IllegalStateException
 
 class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
@@ -66,6 +68,7 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
         inputStream.getBytesAsync { fileBytes ->
             inputStream.close()
             sendUploadRequest(fileBytes, audioFileName, mediaType)
+
         }
 
     }
@@ -110,7 +113,8 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
                     status.value = "Retrieving melody list was successful!"
                     val melodies = response.body()
                     val localizedMelodies = melodies?.map {
-                            rawMelodyInfo -> formatRawMelodyInfo(appContext, rawMelodyInfo)
+                            rawMelodyInfo ->
+                        formatRawMelodyInfo(appContext, rawMelodyInfo)
                     } ?: throw Throwable("List of melody info should not be null")
 
                     melodyList.value = localizedMelodies

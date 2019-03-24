@@ -15,11 +15,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import apps.dcoder.smartbellcontrol.prefs.PreferenceKeys
-import apps.dcoder.smartbellcontrol.services.BellFirebaseMessagingService
+import apps.dcoder.smartbellcontrol.viewmodels.MainViewModel
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseApp
-import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 

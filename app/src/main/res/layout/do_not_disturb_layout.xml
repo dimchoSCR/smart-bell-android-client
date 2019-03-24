@@ -1,72 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <apps.dcoder.smartbellcontrol.controls.ValueSelectView
-        android:id="@+id/vsDays"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:background="?android:selectableItemBackground"
-        custom:title="@string/week_days_list_pref_title"
-        custom:description="@string/tap_to_set_up" />
+        android:layout_height="wrap_content" >
 
-    <apps.dcoder.smartbellcontrol.controls.ValueSelectView
-        android:id="@+id/vsStartTime"
-        android:layout_width="match_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:background="?android:selectableItemBackground"
-        custom:title="@string/do_not_disturb_start_time"
-        custom:description="@string/tap_to_set_up" />
+        <apps.dcoder.smartbellcontrol.controls.ValueSelectView
+            android:id="@+id/vsDays"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?android:selectableItemBackground"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toTopOf="parent"
+            custom:title="@string/week_days_list_pref_title"
+            custom:description="@string/tap_to_set_up" />
 
-    <apps.dcoder.smartbellcontrol.controls.ValueSelectView
-        android:id="@+id/vsEndTime"
-        android:layout_width="match_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:background="?android:selectableItemBackground"
-        custom:title="@string/do_not_disturb_dialog_end_time"
-        custom:description="@string/tap_to_set_up"/>
+        <apps.dcoder.smartbellcontrol.controls.ValueSelectView
+            android:id="@+id/vsStartTime"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?android:selectableItemBackground"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toBottomOf="@+id/vsDays"
+            custom:title="@string/do_not_disturb_start_time"
+            custom:description="@string/tap_to_set_up" />
 
-    <CheckBox android:id="@+id/cbEndTomorrow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginLeft="12dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:checked="true"
-        android:text="@string/do_not_disturb_dialog_checkbox_text"/>
+        <apps.dcoder.smartbellcontrol.controls.ValueSelectView
+            android:id="@+id/vsEndTime"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:background="?android:selectableItemBackground"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toBottomOf="@+id/vsStartTime"
+            custom:title="@string/do_not_disturb_dialog_end_time"
+            custom:description="@string/tap_to_set_up" />
 
-    <Button android:id="@+id/btnSave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_gravity="center"
-        android:text="@string/save"/>
+        <CheckBox
+            android:id="@+id/cbEndTomorrow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:checked="true"
+            android:text="@string/do_not_disturb_dialog_checkbox_text"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toBottomOf="@+id/vsEndTime" />
 
-</LinearLayout>
+        <FrameLayout android:id="@+id/ltButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toBottomOf="@+id/cbEndTomorrow" >
+
+            <Button android:id="@+id/btnSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/save" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/ltLoad"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="?android:colorBackground"
+            android:clickable="true"
+            custom:elevation="2dp"
+            custom:layout_constraintBottom_toBottomOf="parent"
+            custom:layout_constraintTop_toTopOf="parent"
+            android:focusable="true">
+
+            <ProgressBar android:id="@+id/pbLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:textColor="@color/colorAccent"
+            custom:layout_constraintBottom_toBottomOf="parent"
+            custom:layout_constraintEnd_toEndOf="parent"
+            custom:layout_constraintStart_toStartOf="parent"
+            custom:layout_constraintTop_toBottomOf="@+id/ltButton"
+            tools:text="Error" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

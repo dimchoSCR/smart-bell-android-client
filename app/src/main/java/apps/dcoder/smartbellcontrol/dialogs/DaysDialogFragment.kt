@@ -69,13 +69,14 @@ class DaysDialogFragment internal constructor(): DialogFragment() {
             throw IllegalArgumentException("Fragment arguments can not be null!")
         }
 
-        initializeLayout(customDialogView as ViewGroup, arguments!!)
+        val container = customDialogView.findViewById<LinearLayout>(R.id.llContainer)
+        initializeLayout(container, arguments!!)
         builder.setTitle(context!!.getString(R.string.week_days_list_pref_title))
             .setView(customDialogView)
             .setPositiveButton(android.R.string.ok) { dialog, id ->
                 val resultSet = arrayListOf<Int>()
-                for (i in 0 until customDialogView.childCount) {
-                    if ((customDialogView.getChildAt(i) as CheckBox).isChecked) {
+                for (i in 0 until container.childCount) {
+                    if ((container.getChildAt(i) as CheckBox).isChecked) {
                         resultSet.add(dayValues[i])
                     }
                 }
