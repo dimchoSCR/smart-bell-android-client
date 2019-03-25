@@ -16,8 +16,16 @@ import android.media.RingtoneManager
 import androidx.work.*
 import apps.dcoder.smartbellcontrol.MainActivity
 import apps.dcoder.smartbellcontrol.R
+import apps.dcoder.smartbellcontrol.formatRawRingEntry
+import apps.dcoder.smartbellcontrol.restapiclient.model.RawRingEntry
+import apps.dcoder.smartbellcontrol.utils.toLocalizedPointSeparatedString
 import apps.dcoder.smartbellcontrol.work.SendFCMAppTokenWorker
 import apps.dcoder.smartbellcontrol.work.Workers
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.type.CollectionType
+
+
+
 
 class BellFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -32,17 +40,23 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
+
         private const val NOTIFICATION_CHANNEL_ID = "Bell"
         private const val NOTIFICATION_CHANNEL_NAME = "Ring notifications"
+
         private const val NOTIFICATION_ID = 123
-        private const val FIREBASE_NOTIFICATION_TYPE = "NotificationType"
+        private const val DISTURB_NOTIFICATION_ID = 124
         private const val REQUEST_CODE_GO_TO_LOG = 15
+
+        private const val FIREBASE_NOTIFICATION_TYPE = "NotificationType"
+        private const val KEY_NOTIFICATION_DATA = "Data"
+
     }
 
     private inner class Notifier {
         private val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        fun createNotificationChannel() {
+        fun createNotificationChannel(isInDoNotDisturb: Boolean) {
             // Create the NotificationChannel, but only on API 26+ because
             // the NotificationChannel class is new and not in the support library
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -53,7 +67,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
                     description = descriptionText
                     enableLights(true)
                     lightColor = Color.BLUE
-                    enableVibration(true)
+                    enableVibration(!isInDoNotDisturb)
                     setImportance(importance)
                 }
 
@@ -61,18 +75,37 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
             }
         }
 
-        fun constructNotification(title: String?, contentText: String?): Notification {
-            createNotificationChannel()
+        fun constructNotification(title: String?, contentText: String?, isInDoNotDisturb: Boolean): Notification {
+            createNotificationChannel(isInDoNotDisturb)
 
             return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID).apply {
                 setSmallIcon(R.drawable.ic_ring_app_color_primary_24dp)
-                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                setVibrate(longArrayOf(1000, 1000))
                 setContentTitle(title)
                 setAutoCancel(true)
                 setContentText(contentText)
                 setContentIntent(createPendingIntent<MainActivity>())
                 priority = NotificationCompat.PRIORITY_HIGH
+
+                if (!isInDoNotDisturb) {
+                    setVibrate(longArrayOf(1000, 1000))
+                    setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                }
+            }.build()
+        }
+
+        fun constructDoNotDisturbReportNotification(content: String): Notification {
+            createNotificationChannel(true)
+
+            return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID).apply {
+                setSmallIcon(R.drawable.ic_ring_app_color_primary_24dp)
+                setContentTitle(getString(R.string.ring_notification_title))
+                setContentText(getString(R.string.missed_ring))
+                setAutoCancel(false)
+                .setStyle(NotificationCompat.BigTextStyle()
+                        .bigText(content))
+                setContentIntent(createPendingIntent<MainActivity>())
+                priority = NotificationCompat.PRIORITY_HIGH
+
             }.build()
         }
 
@@ -104,16 +137,49 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FirebaseDK", "Notification type: $notificationType")
         when (notificationType) {
             NotificationType.RING -> {
+                if (data[KEY_NOTIFICATION_DATA] == null) {
+                    Log.e("FirebaseDK", "Notification payload should include DoNotDisturb status!")
+                    return
+                }
+
+                val isInDoNotDisturb = data[KEY_NOTIFICATION_DATA]!!.toBoolean()
+                if (!isInDoNotDisturb && !data[KEY_NOTIFICATION_DATA].equals("false", true)) {
+                    Log.e("FirebaseDK", "DoNotDisturb payload should be of type boolean!")
+                    return
+                }
+
                 val notification = notifier.constructNotification(
                     getString(R.string.ring_notification_title),
-                    getString(R.string.ring_notification_content)
+                    getString(R.string.ring_notification_content),
+                    isInDoNotDisturb
                 )
 
                 notifier.notifyUser(NOTIFICATION_ID, notification)
                 Log.d("FirebaseDK", "Notification constructed from data message")
             }
 
-            NotificationType.MESSAGE -> Log.d("FirebaseDK", "Message received from server!")
+            NotificationType.MESSAGE -> {
+                Log.d("FirebaseDK", "Message received from server!")
+                if (data[KEY_NOTIFICATION_DATA] == null) {
+                    Log.e("FirebaseDK", "Notification payload should include ring data!")
+                    return
+                }
+
+                val objectMapper = ObjectMapper()
+                val collectionType: CollectionType = objectMapper.typeFactory.constructCollectionType(
+                    List::class.java, RawRingEntry::class.java
+                )
+
+                val rawRingEntryList = objectMapper.readValue<List<RawRingEntry>>(data[KEY_NOTIFICATION_DATA], collectionType)
+                val ringTimes: List<String> = rawRingEntryList.map { formatRawRingEntry(it).formattedDateTime }.distinct()
+                val notificationContent = ringTimes.toLocalizedPointSeparatedString(applicationContext)
+                Log.e("FirebaseDK", notificationContent)
+
+                notifier.notifyUser(
+                    DISTURB_NOTIFICATION_ID,
+                    notifier.constructDoNotDisturbReportNotification(notificationContent)
+                )
+            }
         }
 
     }

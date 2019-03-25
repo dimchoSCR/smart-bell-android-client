@@ -30,4 +30,12 @@ public class RawRingEntry {
         this.dateTime = dateTime;
     }
 
+    @Override
+    public String toString() {
+        return "RawRingEntry{" +
+                "id=" + id +
+                ", melodyName='" + melodyName + '\'' +
+                ", dateTime='" + dateTime + '\'' +
+                '}';
+    }
 }
