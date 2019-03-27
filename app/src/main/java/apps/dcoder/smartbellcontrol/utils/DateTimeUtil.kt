@@ -5,18 +5,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object DateTimeUtil {
-    fun formatTimeStringUsingCurrentLocale(timeString: String, inputFormat: String, outputDFormat: String): String {
+    fun formatTimeStringUsingCurrentLocale(timeString: String, inputFormat: String, outputFormat: String): String {
 
         return try {
-            val defaultCal = Calendar.getInstance()
-            val deviceTimeZone = defaultCal.timeZone
-            val offsetFromUTC = deviceTimeZone.getOffset(defaultCal.time.time)
-
+            val parsableTimeString = timeString.replace(Regex("Z$"), "+00:00")
             val calendar = Calendar.getInstance()
-            calendar.time = SimpleDateFormat(inputFormat, Locale.getDefault()).parse(timeString)
-            calendar.add(Calendar.MILLISECOND, offsetFromUTC)
+            calendar.time = SimpleDateFormat(inputFormat, Locale.getDefault()).parse(parsableTimeString)
 
-            SimpleDateFormat(outputDFormat, Locale.getDefault()).format(calendar.time)
+            SimpleDateFormat(outputFormat, Locale.getDefault()).format(calendar.time)
 
         } catch (e: Exception) {
             Log.e("DisturbDK", "Could not parse and localize time string!", e)
