@@ -1,4 +1,4 @@
-package apps.dcoder.smartbellcontrol
+package apps.dcoder.smartbellcontrol.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.restapiclient.model.MelodyInfo
 import kotlinx.android.synthetic.main.list_item_melody_info.view.*
 

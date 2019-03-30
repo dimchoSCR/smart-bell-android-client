@@ -25,6 +25,9 @@ interface SmartBellAPI {
     fun getRingLogEntries(@Query("compSign") compSign: String,
                           @Query("timeString") timeString: String): Call<List<RawRingEntry>>
 
+    @GET("melodies/log")
+    fun getAllLogEntries(): Call<List<RawRingEntry>>
+
     @FormUrlEncoded
     @PUT("notifications/register")
     fun registerAppForPushNotifications(@FieldMap params: Map<String, String>): Call<Void>

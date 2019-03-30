@@ -43,6 +43,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
 
         private const val NOTIFICATION_CHANNEL_ID = "Bell"
         private const val NOTIFICATION_CHANNEL_NAME = "Ring notifications"
+        private const val NOTIFICATION_DATE_TIME_FORMAT = "HH:mm, dd MMM"
 
         private const val NOTIFICATION_ID = 123
         private const val DISTURB_NOTIFICATION_ID = 124
@@ -171,7 +172,10 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
                 )
 
                 val rawRingEntryList = objectMapper.readValue<List<RawRingEntry>>(data[KEY_NOTIFICATION_DATA], collectionType)
-                val ringTimes: List<String> = rawRingEntryList.map { formatRawRingEntry(it).formattedDateTime }.distinct()
+                val ringTimes: List<String> = rawRingEntryList.map {
+                    formatRawRingEntry(it, NOTIFICATION_DATE_TIME_FORMAT).formattedDateTime
+                }.distinct()
+
                 val notificationContent = ringTimes.toLocalizedPointSeparatedString(applicationContext)
                 Log.e("FirebaseDK", notificationContent)
 

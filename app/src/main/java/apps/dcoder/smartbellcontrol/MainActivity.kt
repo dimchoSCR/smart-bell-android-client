@@ -6,14 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import apps.dcoder.smartbellcontrol.adapters.MelodyInfoAdapter
 import apps.dcoder.smartbellcontrol.prefs.PreferenceKeys
 import apps.dcoder.smartbellcontrol.viewmodels.MainViewModel
 import com.google.android.gms.common.GoogleApiAvailability
@@ -116,24 +114,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Picking cancelled!", Toast.LENGTH_LONG).show();
             }
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.app_tool_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle item selection
-        return return when (item.itemId) {
-            R.id.item_settings -> {
-                val opneSettingsIntent = Intent(this, SettingsActivity::class.java)
-                startActivity(opneSettingsIntent)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 }

@@ -24,9 +24,8 @@ fun formatRawMelodyInfo(context: Context, rawMelodyInfo: RawMelodyInfo): MelodyI
     )
 }
 
-fun formatRawRingEntry(rawRingEntry: RawRingEntry): RingEntry {
+fun formatRawRingEntry(rawRingEntry: RawRingEntry, outputFormat: String): RingEntry {
     val inputFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-    val outputFormat = "HH:mm, dd MMM"
 
     val formattedDateTime = DateTimeUtil.formatTimeStringUsingCurrentLocale(rawRingEntry.dateTime, inputFormat, outputFormat)
     return RingEntry(rawRingEntry.id, rawRingEntry.melodyName, formattedDateTime)
