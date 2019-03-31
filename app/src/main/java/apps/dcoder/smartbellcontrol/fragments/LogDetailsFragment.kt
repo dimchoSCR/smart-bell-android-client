@@ -46,7 +46,10 @@ class LogDetailsFragment : Fragment() {
 
         dashboardViewModel.errorLiveData.observe(this, Observer {
             ltSwipeRefresh.isRefreshing = false
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            val message = it.getContentIfNotConsumed()
+            if (message != null) {
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
         })
 
         ltSwipeRefresh.setColorSchemeResources(R.color.colorAccent)

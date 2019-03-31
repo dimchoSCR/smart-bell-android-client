@@ -231,7 +231,11 @@ class DoNotDisturbPrefFragment: Fragment() {
         })
 
         settingsViewModel.getErrorLiveData().observe(this, Observer {
-            view.tvError.text = it
+            val message = it.getContentIfNotConsumed()
+            if (message != null) {
+                view.tvError.text = message
+            }
+
             view.pbLoading.visibility = View.GONE
         })
     }

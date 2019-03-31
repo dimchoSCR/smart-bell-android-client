@@ -58,7 +58,10 @@ class DashboardFragment: Fragment() {
 
         dashboardViewModel.errorLiveData.observe(this, Observer {
             view.pbLoading.visibility = View.GONE
-            view.tvError.text = it
+            val message = it.getContentIfNotConsumed()
+            if (message != null) {
+                view.tvError.text = message
+            }
         })
 
         dashboardViewModel.logEntriesLiveData.observe(this, Observer {

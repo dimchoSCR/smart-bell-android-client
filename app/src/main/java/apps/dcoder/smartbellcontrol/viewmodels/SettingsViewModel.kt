@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import apps.dcoder.smartbellcontrol.Event
 import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.restapiclient.RetrofitAPIs
 import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
@@ -17,16 +18,16 @@ import kotlin.collections.ArrayList
 class SettingsViewModel(private val appContext: Application): AndroidViewModel(appContext) {
     private val bellAPI = RetrofitAPIs.bellAPI
 
-    private val errorLiveData: MutableLiveData<String> = MutableLiveData()
-    private val successLiveData: MutableLiveData<String> = MutableLiveData()
+    private val errorLiveData: MutableLiveData<Event<String>> = MutableLiveData()
+    private val successLiveData: MutableLiveData<Event<String>> = MutableLiveData()
 
     private val doNotDisturbSettingsLiveData: MutableLiveData<BellStatus.DoNotDisturbStatus> = MutableLiveData()
 
-    fun getSuccessLiveData(): LiveData<String> {
+    fun getSuccessLiveData(): LiveData<Event<String>> {
         return successLiveData
     }
 
-    fun getErrorLiveData(): LiveData<String> {
+    fun getErrorLiveData(): LiveData<Event<String>> {
         return errorLiveData
     }
 
@@ -47,18 +48,18 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
         call.enqueue(object : Callback<Void> {
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 Log.e("DisturbDK", "Setting do not disturb failed!", t)
-                errorLiveData.value = appContext.getString(R.string.schedule_do_not_disturb_failed)
+                errorLiveData.value = Event(appContext.getString(R.string.schedule_do_not_disturb_failed))
             }
 
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if(response.isSuccessful) {
                     Log.d("DisturbDK", response.message() ?: "Setting do not disturb successful")
-                    successLiveData.value = appContext.getString(R.string.scheduled_do_not_disturb)
+                    successLiveData.value = Event(appContext.getString(R.string.scheduled_do_not_disturb))
 
 
                 } else {
                     Log.e("DisturbDK", response.errorBody()?.string() ?: "Unknown error occurred!")
-                    errorLiveData.value = appContext.getString(R.string.schedule_do_not_disturb_failed)
+                    errorLiveData.value = Event(appContext.getString(R.string.schedule_do_not_disturb_failed))
                 }
             }
 
@@ -70,7 +71,7 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
 
             override fun onFailure(call: Call<BellStatus.DoNotDisturbStatus>, t: Throwable) {
                 Log.e("DisturbDK", "Getting do not disturb settings failed", t)
-                errorLiveData.value = appContext.getString(R.string.err_could_not_get_disturb_status)
+                errorLiveData.value = Event(appContext.getString(R.string.err_could_not_get_disturb_status))
             }
 
             override fun onResponse(
@@ -83,7 +84,7 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
 
                 } else {
                     Log.e("DisturbDK", response.errorBody()?.string() ?: "Unknown error occurred!")
-                    errorLiveData.value = appContext.getString(R.string.schedule_do_not_disturb_failed)
+                    errorLiveData.value = Event(appContext.getString(R.string.schedule_do_not_disturb_failed))
                 }
             }
 
