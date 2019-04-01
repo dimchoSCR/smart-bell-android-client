@@ -44,4 +44,7 @@ interface SmartBellAPI {
 
     @GET("melodies/donotdisturb/status")
     fun getDoNotDisturbStatus(): Call<BellStatus.DoNotDisturbStatus>
+
+    @GET("melodies/status")
+    fun getBellStatus(): Call<BellStatus>
 }

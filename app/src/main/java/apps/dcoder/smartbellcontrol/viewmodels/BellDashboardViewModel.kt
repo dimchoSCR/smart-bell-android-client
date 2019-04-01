@@ -9,6 +9,7 @@ import apps.dcoder.smartbellcontrol.Event
 import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.formatRawRingEntry
 import apps.dcoder.smartbellcontrol.restapiclient.RetrofitAPIs
+import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
 import apps.dcoder.smartbellcontrol.restapiclient.model.RawRingEntry
 import apps.dcoder.smartbellcontrol.restapiclient.model.RingEntry
 import retrofit2.Call
@@ -19,7 +20,9 @@ class BellDashboardViewModel(private val appContext: Application): AndroidViewMo
 
     private val bellAPI = RetrofitAPIs.bellAPI
     private val backingErrorLiveData = MutableLiveData<Event<String>>()
+    private val backingErrorLiveDataBellStatus = MutableLiveData<Event<String>>()
     private val backingLogEntriesLiveData = MutableLiveData<List<RingEntry>>()
+    private val backingBellStatusLiveData = MutableLiveData<BellStatus>()
 
     companion object {
         private const val LOG_DATE_TIME_FORMAT = "dd MMMM yyyy, HH:mm:ss "
@@ -28,8 +31,14 @@ class BellDashboardViewModel(private val appContext: Application): AndroidViewMo
     val errorLiveData: LiveData<Event<String>>
         get() = backingErrorLiveData
 
+    val errorLiveDataBellStatus: LiveData<Event<String>>
+        get() = backingErrorLiveDataBellStatus
+
     val logEntriesLiveData: LiveData<List<RingEntry>>
         get() = backingLogEntriesLiveData
+
+    val bellStatusLiveData: LiveData<BellStatus>
+        get() = backingBellStatusLiveData
 
     fun loadRingLog() {
         bellAPI.getAllLogEntries().enqueue(object: Callback<List<RawRingEntry>> {
@@ -57,7 +66,34 @@ class BellDashboardViewModel(private val appContext: Application): AndroidViewMo
             }
 
         })
+    }
 
+    fun loadBellStatus() {
+
+        bellAPI.getBellStatus().enqueue(object: Callback<BellStatus> {
+            override fun onFailure(call: Call<BellStatus>, t: Throwable) {
+                Log.e("BellStatusDK", "Getting bell status failed", t)
+                backingErrorLiveDataBellStatus.value = Event(appContext.getString(R.string.error_connecting_to_bell))
+            }
+
+            override fun onResponse(call: Call<BellStatus>, response: Response<BellStatus>) {
+                if(response.isSuccessful) {
+                    Log.d("BellStatusDK", response.message() ?: "Getting bell status successful")
+                    val bellStatus = response.body()
+                    if (bellStatus == null) {
+                        backingErrorLiveDataBellStatus.value = Event(appContext.getString(R.string.unknown_error))
+                        return
+                    }
+
+                    backingBellStatusLiveData.value = bellStatus
+
+                } else {
+                    Log.e("BellStatusDK", response.errorBody()?.string() ?: "Unknown error occurred!")
+                    backingErrorLiveDataBellStatus.value = Event(appContext.getString(R.string.internal_bell_error))
+                }
+            }
+
+        })
     }
 
 }

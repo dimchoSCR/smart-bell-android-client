@@ -19,6 +19,7 @@ class BellDashboardActivity : AppCompatActivity() {
 
         val dashboardViewModel = ViewModelProviders.of(this).get(BellDashboardViewModel::class.java)
         dashboardViewModel.loadRingLog()
+        dashboardViewModel.loadBellStatus()
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

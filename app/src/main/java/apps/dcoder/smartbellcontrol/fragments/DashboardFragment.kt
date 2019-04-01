@@ -10,10 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import apps.dcoder.smartbellcontrol.R
+import apps.dcoder.smartbellcontrol.restapiclient.model.PlaybackMode
 import apps.dcoder.smartbellcontrol.restapiclient.model.RingEntry
+import apps.dcoder.smartbellcontrol.utils.TimeExtensions
 import apps.dcoder.smartbellcontrol.viewmodels.BellDashboardViewModel
 import kotlinx.android.synthetic.main.dashboard_fragment.view.*
-import kotlinx.android.synthetic.main.fragment_log_details.view.*
+import kotlinx.android.synthetic.main.layout_load.view.*
 import kotlinx.android.synthetic.main.ring_log_list_item.view.*
 
 class DashboardFragment: Fragment() {
@@ -51,22 +53,72 @@ class DashboardFragment: Fragment() {
             logDetailsFragment.sharedElementEnterTransition = AutoTransition()
         }
 
-        view.pbLoading.visibility = View.VISIBLE
+        view.ltLoadF.pbLoading.visibility = View.VISIBLE
+        view.ltLoadS.pbLoading.visibility = View.VISIBLE
 
         val dashboardViewModel = ViewModelProviders.of(activity!!).get(BellDashboardViewModel::class.java)
 //        dashboardViewModel.loadRingLog()
 
         dashboardViewModel.errorLiveData.observe(this, Observer {
-            view.pbLoading.visibility = View.GONE
+            view.ltLoadS.pbLoading.visibility = View.GONE
             val message = it.getContentIfNotConsumed()
             if (message != null) {
-                view.tvError.text = message
+                view.ltLoadS.tvError.text = message
             }
+        })
+
+        dashboardViewModel.errorLiveDataBellStatus.observe(this, Observer {
+            view.ltLoadF.pbLoading.visibility = View.GONE
+            val message = it.getContentIfNotConsumed()
+            if (message != null) {
+                view.ltLoadF.tvError.text = message
+            }
+        })
+
+        dashboardViewModel.bellStatusLiveData.observe(this, Observer { bellStatus ->
+            view.ltLoadF.visibility = View.GONE
+
+            view.cvBellStatus.tvCurrentRingtone.text = bellStatus.coreStatus.currentRingtone
+            val playbackMode = PlaybackMode.valueOf(bellStatus.coreStatus.playbackMode)
+            when (playbackMode) {
+                PlaybackMode.MODE_STOP_ON_RELEASE -> view.cvBellStatus.tvPlaybackMode.text = getString(R.string.playback_mode_stop_on_release)
+
+                PlaybackMode.MODE_STOP_AFTER_DELAY -> {
+                    val playbackTime = bellStatus.coreStatus.playbackTime
+                    view.cvBellStatus.tvPlaybackMode.text = getString(
+                        R.string.playback_mode_delay_template, playbackTime)
+                }
+            }
+
+            view.cvBellStatus.tvRingVolume.text = getString(
+                R.string.volume_template,
+                bellStatus.coreStatus.ringVolume
+            )
+
+            val doNotDisturbOn = bellStatus.doNotDisturbStatus.isInDoNotDisturb
+            val startTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.doNotDisturbStatus.startTimeMillis)
+            val endTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.doNotDisturbStatus.endTimeMillis)
+
+            val doNotDisturbStringId = if (doNotDisturbOn) {
+                R.string.do_not_disturb_status_template_on
+            } else {
+                R.string.do_not_disturb_status_template_off
+            }
+
+            view.cvBellStatus.tvDoNotDisturbStatus.text = getString(
+                doNotDisturbStringId,
+                startTimeArr[0],
+                startTimeArr[1],
+                endTimeArr[0],
+                endTimeArr[1]
+            )
+
+
         })
 
         dashboardViewModel.logEntriesLiveData.observe(this, Observer {
             view.tvInfo.visibility = View.VISIBLE
-            view.ltLoad.visibility = View.GONE
+            view.ltLoadS.visibility = View.GONE
 
             displayRecentRings(it.take(2), view)
 
