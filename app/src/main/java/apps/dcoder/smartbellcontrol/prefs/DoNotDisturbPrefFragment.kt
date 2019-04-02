@@ -227,7 +227,7 @@ class DoNotDisturbPrefFragment: Fragment() {
         })
 
         settingsViewModel.getSuccessLiveData().observe(this, Observer {
-            Toast.makeText(context!!, it.toString(), Toast.LENGTH_LONG).show()
+            Toast.makeText(context!!, it.getContentIfNotConsumed(), Toast.LENGTH_LONG).show()
         })
 
         settingsViewModel.getErrorLiveData().observe(this, Observer {

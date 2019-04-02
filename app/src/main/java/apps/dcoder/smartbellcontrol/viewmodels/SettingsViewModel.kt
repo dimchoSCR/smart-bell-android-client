@@ -20,8 +20,34 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
 
     private val errorLiveData: MutableLiveData<Event<String>> = MutableLiveData()
     private val successLiveData: MutableLiveData<Event<String>> = MutableLiveData()
+    private val backingErrorNotifyLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
+    private val backingSuccessNotifyLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
 
     private val doNotDisturbSettingsLiveData: MutableLiveData<BellStatus.DoNotDisturbStatus> = MutableLiveData()
+
+    private inner class CallStatusHandler(val onFailure: () -> Unit, val onSuccess: () -> Unit): Callback<Void> {
+
+        override fun onFailure(call: Call<Void>, t: Throwable) {
+            Log.e("SettingsDK", "Setting playback duration failed", t)
+            onFailure()
+        }
+
+        override fun onResponse(call: Call<Void>, response: Response<Void>) {
+            if (response.isSuccessful) {
+                Log.d("SettingsDK", response.message() ?: "Getting playback duration successful")
+                onSuccess()
+            } else {
+                Log.e("SettingsDK", response.errorBody()?.string() ?: "Unknown error occurred!")
+                onFailure()
+            }
+        }
+    }
+
+    val errorNotifyLiveData: LiveData<Event<Void>>
+        get() = backingErrorNotifyLiveData
+
+    val successNotifyLiveData: LiveData<Event<Void>>
+        get() = backingSuccessNotifyLiveData
 
     fun getSuccessLiveData(): LiveData<Event<String>> {
         return successLiveData
@@ -89,5 +115,40 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
             }
 
         })
+    }
+
+    fun setPlaybackMode(playbackMode: String) {
+        bellAPI.setBellPlaybackMode(playbackMode).enqueue(
+            CallStatusHandler(
+                onFailure = { backingErrorNotifyLiveData.value = Event(null) },
+                onSuccess = {
+                    backingSuccessNotifyLiveData.value = Event(null)
+                    BellStatus.coreStatus.playbackMode = playbackMode
+                }
+            )
+        )
+    }
+
+    fun setPlaybackDuration(playbackDuration: Int) {
+        bellAPI.setBellPlaybackDuration(playbackDuration).enqueue(
+            CallStatusHandler(
+                onFailure = { backingErrorNotifyLiveData.value = Event(null) },
+                onSuccess = {
+                    backingSuccessNotifyLiveData.value = Event(null)
+                    BellStatus.coreStatus.playbackTime = playbackDuration
+                }
+            )
+        )
+    }
+
+    fun setRingVolume(ringVolume: Int) {
+        bellAPI.setRingVolume(ringVolume).enqueue(
+            CallStatusHandler(
+                onFailure = { backingErrorNotifyLiveData.value = Event(null)},
+                onSuccess = {
+                    backingSuccessNotifyLiveData.value = Event(null)
+                    BellStatus.coreStatus.ringVolume = ringVolume
+                })
+        )
     }
 }

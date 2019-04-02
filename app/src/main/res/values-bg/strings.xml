@@ -49,6 +49,18 @@
     <string name="playback_mode_stop_on_release">Спри мелодията при пускане на бутона</string>
     <string name="do_not_disturb_status_template_on">Включен, %1$02d:%2$02d - %3$02d:%4$02d</string>
     <string name="do_not_disturb_status_template_off">Изключен, %1$02d:%2$02d - %3$02d:%4$02d</string>
+    <string name="playback_mode_summary">Настройте режима на звънене</string>
+    <string name="playback_mode_title">Режим на звънене</string>
+    <string name="playback_mode_dialog_title">Режими на звънене</string>
+    <string name="playback_duration_title">Продължителност на позвъняване</string>
+    <string name="playback_duration_summary">Продължителноста която използва режима \"Спри мелодията след изтичане на интервала\"</string>
+    <string name="key_playback_dialog_title">Въведете време в секунди</string>
+    <string name="setting_change_success">Настройката беше променена успешно!</string>
+    <string name="setting_change_failure">Възникна грешка. Настройката не може да бъде сменена!</string>
+    <string name="err_playback_duration">Грешка: Стойността трябва да бъде между 10 и 60 секунди</string>
+    <string name="volume_pref_title">Сила на звука</string>
+    <string name="volume_pref_summary">Настройте силата на звука на вашия звънец</string>
+
     <string-array name="week_days_list_pref_entries_arr">
         <item>Понеделник</item>
         <item>Вторник</item>
@@ -57,5 +69,10 @@
         <item>Петък</item>
         <item>Събота</item>
         <item>Неделя</item>
+    </string-array>
+
+    <string-array name="playback_modes">
+        <item>Спри мелодията при пускане на бутона</item>
+        <item>Спри мелодията след изтичане на интервала</item>
     </string-array>
 </resources>

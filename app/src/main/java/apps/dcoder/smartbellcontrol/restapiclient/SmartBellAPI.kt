@@ -47,4 +47,16 @@ interface SmartBellAPI {
 
     @GET("melodies/status")
     fun getBellStatus(): Call<BellStatus>
+
+    @FormUrlEncoded
+    @PUT("melodies/status/playbackMode")
+    fun setBellPlaybackMode(@Field("playbackMode") playbackMode: String): Call<Void>
+
+    @FormUrlEncoded
+    @PUT("melodies/status/playbackDuration")
+    fun setBellPlaybackDuration(@Field("playbackDuration") playbackMode: Int): Call<Void>
+
+    @FormUrlEncoded
+    @PUT("melodies/status/ringVolume")
+    fun setRingVolume(@Field("ringVolume") ringVolume: Int): Call<Void>
 }

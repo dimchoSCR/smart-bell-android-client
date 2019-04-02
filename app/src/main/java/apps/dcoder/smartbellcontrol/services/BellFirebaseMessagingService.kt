@@ -14,6 +14,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import android.media.RingtoneManager
 import androidx.work.*
+import apps.dcoder.smartbellcontrol.BellDashboardActivity
 import apps.dcoder.smartbellcontrol.MainActivity
 import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.formatRawRingEntry
@@ -52,6 +53,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         private const val FIREBASE_NOTIFICATION_TYPE = "NotificationType"
         private const val KEY_NOTIFICATION_DATA = "Data"
 
+        public const val EXTRA_OPEN_LOG_FRAGAMENT = "Log"
     }
 
     private inner class Notifier {
@@ -84,7 +86,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
                 setContentTitle(title)
                 setAutoCancel(true)
                 setContentText(contentText)
-                setContentIntent(createPendingIntent<MainActivity>())
+                setContentIntent(createPendingIntent<BellDashboardActivity>())
                 priority = NotificationCompat.PRIORITY_HIGH
 
                 if (!isInDoNotDisturb) {
@@ -104,7 +106,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
                 setAutoCancel(false)
                 .setStyle(NotificationCompat.BigTextStyle()
                         .bigText(content))
-                setContentIntent(createPendingIntent<MainActivity>())
+                setContentIntent(createPendingIntent<BellDashboardActivity>())
                 priority = NotificationCompat.PRIORITY_HIGH
 
             }.build()
@@ -117,6 +119,8 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
 
     private inline fun<reified T> createPendingIntent(): PendingIntent {
         val intentToLog = Intent(applicationContext, T::class.java)
+        intentToLog.putExtra(EXTRA_OPEN_LOG_FRAGAMENT, true)
+
         return PendingIntent.getActivity(
             applicationContext,
             REQUEST_CODE_GO_TO_LOG,

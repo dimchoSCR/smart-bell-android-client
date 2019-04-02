@@ -8,6 +8,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.lifecycle.ViewModelProviders
 import apps.dcoder.smartbellcontrol.fragments.DashboardFragment
+import apps.dcoder.smartbellcontrol.fragments.LogDetailsFragment
+import apps.dcoder.smartbellcontrol.services.BellFirebaseMessagingService
 import apps.dcoder.smartbellcontrol.viewmodels.BellDashboardViewModel
 
 
@@ -24,9 +26,17 @@ class BellDashboardActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .add(android.R.id.content, DashboardFragment())
+                .addToBackStack(null)
                 .commit()
         }
 
+        if (intent != null && intent.hasExtra(BellFirebaseMessagingService.EXTRA_OPEN_LOG_FRAGAMENT)) {
+            supportFragmentManager.beginTransaction()
+                .replace(android.R.id.content, LogDetailsFragment())
+                .addToBackStack(null)
+                .commit()
+
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

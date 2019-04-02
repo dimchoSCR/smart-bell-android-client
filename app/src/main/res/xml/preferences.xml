@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <androidx.preference.SeekBarPreference android:key="key_volume"
+        android:title="@string/volume_pref_title"
+        android:summary="@string/volume_pref_summary"
+        android:max="100"
+        app:showSeekBarValue="true"
+        android:persistent="false"/>
+
     <androidx.preference.Preference android:key="key_do_not_disturb_prefs"
         android:title="@string/pref_title_do_not_disturb" />
+
+    <androidx.preference.ListPreference android:key="key_playback_mode_pref"
+        android:entries="@array/playback_modes"
+        android:entryValues="@array/playback_modes_values"
+        android:summary="@string/playback_mode_summary"
+        android:title="@string/playback_mode_title"
+        android:dialogTitle="@string/playback_mode_dialog_title"
+        android:persistent="false"/>
+
+    <androidx.preference.EditTextPreference android:key="key_playback_duration"
+        android:enabled="false"
+        android:title="@string/playback_duration_title"
+        android:summary="@string/playback_duration_summary"
+        android:dialogTitle="@string/key_playback_dialog_title"
+        android:singleLine="true"
+        android:inputType="number"
+        android:persistent="false" />
+
+
 </androidx.preference.PreferenceScreen>

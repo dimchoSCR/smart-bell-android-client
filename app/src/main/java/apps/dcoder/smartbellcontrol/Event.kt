@@ -14,5 +14,9 @@ class Event<out T> (private val content: T?) {
         return null
     }
 
+    fun consume() {
+        consumed = true
+    }
+
     fun peekContent(): T? = content
 }
