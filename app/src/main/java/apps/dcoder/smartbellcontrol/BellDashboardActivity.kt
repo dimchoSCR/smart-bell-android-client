@@ -26,7 +26,6 @@ class BellDashboardActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .add(android.R.id.content, DashboardFragment())
-                .addToBackStack(null)
                 .commit()
         }
 

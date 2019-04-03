@@ -8,7 +8,7 @@ object BellStatus {
 
     class CoreStatus internal constructor() {
         var currentRingtone: String = ""
-        var playbackMode: String = ""
+        var playbackMode: String = "MODE_STOP_ON_RELEASE"
         var ringVolume: Int = -1
         var playbackTime: Int = -1
     }

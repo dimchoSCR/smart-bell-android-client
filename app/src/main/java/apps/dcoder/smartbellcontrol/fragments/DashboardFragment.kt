@@ -6,10 +6,12 @@ import android.transition.AutoTransition
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import apps.dcoder.smartbellcontrol.R
+import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
 import apps.dcoder.smartbellcontrol.restapiclient.model.PlaybackMode
 import apps.dcoder.smartbellcontrol.restapiclient.model.RingEntry
 import apps.dcoder.smartbellcontrol.utils.TimeExtensions
@@ -43,6 +45,51 @@ class DashboardFragment: Fragment() {
        }
     }
 
+    private fun updateBellStatusLayout(view: View) {
+        view.cvBellStatus.tvCurrentRingtone.text = BellStatus.coreStatus.currentRingtone
+        view.cvBellStatus.tvRingVolume.text = getFormattedRingVolume(BellStatus.coreStatus.ringVolume)
+
+        setBellPlayBackMode(BellStatus.coreStatus, view.tvPlaybackMode)
+        formatAndSetDoNotDisturbData(view.cvBellStatus.tvDoNotDisturbStatus, BellStatus.doNotDisturbStatus)
+    }
+
+    private fun setBellPlayBackMode(coreStatus: BellStatus.CoreStatus, tvPlaybackMode: TextView) {
+        val playbackMode = PlaybackMode.valueOf(coreStatus.playbackMode)
+        when (playbackMode) {
+            PlaybackMode.MODE_STOP_ON_RELEASE -> tvPlaybackMode.text = getString(R.string.playback_mode_stop_on_release)
+
+            PlaybackMode.MODE_STOP_AFTER_DELAY -> {
+                val playbackTime = coreStatus.playbackTime
+                tvPlaybackMode.text = getString(
+                    R.string.playback_mode_delay_template, playbackTime)
+            }
+        }
+    }
+
+    private fun getFormattedRingVolume(ringVolume: Int): String {
+        return getString(R.string.volume_template, ringVolume)
+    }
+
+    private fun formatAndSetDoNotDisturbData(tvDoNotDisturbStatus: TextView, doNotDisturbStatus: BellStatus.DoNotDisturbStatus) {
+        val doNotDisturbOn = doNotDisturbStatus.isInDoNotDisturb
+        val startTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(doNotDisturbStatus.startTimeMillis)
+        val endTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(doNotDisturbStatus.endTimeMillis)
+
+        val doNotDisturbStringId = if (doNotDisturbOn) {
+            R.string.do_not_disturb_status_template_on
+        } else {
+            R.string.do_not_disturb_status_template_off
+        }
+
+        tvDoNotDisturbStatus.text = getString(
+            doNotDisturbStringId,
+            startTimeArr[0],
+            startTimeArr[1],
+            endTimeArr[0],
+            endTimeArr[1]
+        )
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = layoutInflater.inflate(R.layout.dashboard_fragment, container, false)
 
@@ -57,7 +104,6 @@ class DashboardFragment: Fragment() {
         view.ltLoadS.pbLoading.visibility = View.VISIBLE
 
         val dashboardViewModel = ViewModelProviders.of(activity!!).get(BellDashboardViewModel::class.java)
-//        dashboardViewModel.loadRingLog()
 
         dashboardViewModel.errorLiveData.observe(this, Observer {
             view.ltLoadS.pbLoading.visibility = View.GONE
@@ -79,41 +125,10 @@ class DashboardFragment: Fragment() {
             view.ltLoadF.visibility = View.GONE
 
             view.cvBellStatus.tvCurrentRingtone.text = bellStatus.coreStatus.currentRingtone
-            val playbackMode = PlaybackMode.valueOf(bellStatus.coreStatus.playbackMode)
-            when (playbackMode) {
-                PlaybackMode.MODE_STOP_ON_RELEASE -> view.cvBellStatus.tvPlaybackMode.text = getString(R.string.playback_mode_stop_on_release)
+            view.cvBellStatus.tvRingVolume.text = getFormattedRingVolume(bellStatus.coreStatus.ringVolume)
 
-                PlaybackMode.MODE_STOP_AFTER_DELAY -> {
-                    val playbackTime = bellStatus.coreStatus.playbackTime
-                    view.cvBellStatus.tvPlaybackMode.text = getString(
-                        R.string.playback_mode_delay_template, playbackTime)
-                }
-            }
-
-            view.cvBellStatus.tvRingVolume.text = getString(
-                R.string.volume_template,
-                bellStatus.coreStatus.ringVolume
-            )
-
-            val doNotDisturbOn = bellStatus.doNotDisturbStatus.isInDoNotDisturb
-            val startTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.doNotDisturbStatus.startTimeMillis)
-            val endTimeArr = TimeExtensions.getTimeArrayFromUTCMillis(bellStatus.doNotDisturbStatus.endTimeMillis)
-
-            val doNotDisturbStringId = if (doNotDisturbOn) {
-                R.string.do_not_disturb_status_template_on
-            } else {
-                R.string.do_not_disturb_status_template_off
-            }
-
-            view.cvBellStatus.tvDoNotDisturbStatus.text = getString(
-                doNotDisturbStringId,
-                startTimeArr[0],
-                startTimeArr[1],
-                endTimeArr[0],
-                endTimeArr[1]
-            )
-
-
+            setBellPlayBackMode(bellStatus.coreStatus, view.tvPlaybackMode)
+            formatAndSetDoNotDisturbData(view.cvBellStatus.tvDoNotDisturbStatus, bellStatus.doNotDisturbStatus)
         })
 
         dashboardViewModel.logEntriesLiveData.observe(this, Observer {
@@ -137,5 +152,11 @@ class DashboardFragment: Fragment() {
         })
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateBellStatusLayout(view!!)
     }
 }

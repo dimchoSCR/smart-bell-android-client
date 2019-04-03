@@ -2,6 +2,7 @@ package apps.dcoder.smartbellcontrol.viewmodels
 
 import android.app.Application
 import android.util.Log
+import androidx.core.util.TimeUtils
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,6 +14,8 @@ import apps.dcoder.smartbellcontrol.utils.TimeExtensions
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.sql.Time
+import java.util.*
 import kotlin.collections.ArrayList
 
 class SettingsViewModel(private val appContext: Application): AndroidViewModel(appContext) {
@@ -82,7 +85,22 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
                     Log.d("DisturbDK", response.message() ?: "Setting do not disturb successful")
                     successLiveData.value = Event(appContext.getString(R.string.scheduled_do_not_disturb))
 
+                    val cachedDoNotDisturbStatus = BellStatus.doNotDisturbStatus
+                    cachedDoNotDisturbStatus.days = daysArr.toIntArray()
+                    cachedDoNotDisturbStatus.startTimeMillis = startTimeMillis
+                    cachedDoNotDisturbStatus.endTimeMillis = endTimeMillis
+                    cachedDoNotDisturbStatus.isEndTomorrow = endTomorrow
 
+                    val currentDateTime = Calendar.getInstance(TimeZone.getDefault())
+                    val startDateTime = Calendar.getInstance(TimeZone.getDefault())
+                    startDateTime.timeInMillis = startTimeMillis
+                    val endDateTime = Calendar.getInstance(TimeZone.getDefault())
+                    endDateTime.timeInMillis = endTimeMillis
+                    if (endTomorrow) {
+                        endDateTime.add(Calendar.DAY_OF_MONTH, 1)
+                    }
+
+                    cachedDoNotDisturbStatus.isInDoNotDisturb = currentDateTime.after(startDateTime) && currentDateTime.before(endDateTime)
                 } else {
                     Log.e("DisturbDK", response.errorBody()?.string() ?: "Unknown error occurred!")
                     errorLiveData.value = Event(appContext.getString(R.string.schedule_do_not_disturb_failed))
