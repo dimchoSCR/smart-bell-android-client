@@ -45,7 +45,13 @@
                 android:resource="@color/colorAccent" />
         </service>
 
-        <activity android:name=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:label="@string/manage_melodies"
+            android:parentActivityName=".BellDashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".BellDashboardActivity" />
+        </activity>
     </application>
 
 </manifest>

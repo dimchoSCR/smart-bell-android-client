@@ -2,10 +2,9 @@ package apps.dcoder.smartbellcontrol.fragments
 
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.transition.AutoTransition
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -21,6 +20,14 @@ import kotlinx.android.synthetic.main.layout_load.view.*
 import kotlinx.android.synthetic.main.ring_log_list_item.view.*
 
 class DashboardFragment: Fragment() {
+
+    private lateinit var dashboardViewModel: BellDashboardViewModel
+
+    private val handler = Handler()
+    private val uiProgressRunnable = Runnable {
+        view!!.ltLoadF.visibility = View.VISIBLE
+        view!!.ltLoadS.visibility = View.VISIBLE
+    }
 
     private fun displayRecentRings(recents: List<RingEntry>, view: View) {
        if (recents.size == 2) {
@@ -90,7 +97,15 @@ class DashboardFragment: Fragment() {
         )
     }
 
+    private fun refreshContents() {
+        handler.postDelayed(uiProgressRunnable, 300L)
+
+        dashboardViewModel.loadBellStatus()
+        dashboardViewModel.loadRingLog()
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        setHasOptionsMenu(true)
+
         val view = layoutInflater.inflate(R.layout.dashboard_fragment, container, false)
 
         val logDetailsFragment = LogDetailsFragment()
@@ -103,7 +118,7 @@ class DashboardFragment: Fragment() {
         view.ltLoadF.pbLoading.visibility = View.VISIBLE
         view.ltLoadS.pbLoading.visibility = View.VISIBLE
 
-        val dashboardViewModel = ViewModelProviders.of(activity!!).get(BellDashboardViewModel::class.java)
+        dashboardViewModel = ViewModelProviders.of(activity!!).get(BellDashboardViewModel::class.java)
 
         dashboardViewModel.errorLiveData.observe(this, Observer {
             view.ltLoadS.pbLoading.visibility = View.GONE
@@ -122,6 +137,7 @@ class DashboardFragment: Fragment() {
         })
 
         dashboardViewModel.bellStatusLiveData.observe(this, Observer { bellStatus ->
+            handler.removeCallbacks(uiProgressRunnable)
             view.ltLoadF.visibility = View.GONE
 
             view.cvBellStatus.tvCurrentRingtone.text = bellStatus.coreStatus.currentRingtone
@@ -132,6 +148,7 @@ class DashboardFragment: Fragment() {
         })
 
         dashboardViewModel.logEntriesLiveData.observe(this, Observer {
+            handler.removeCallbacks(uiProgressRunnable)
             view.tvInfo.visibility = View.VISIBLE
             view.ltLoadS.visibility = View.GONE
 
@@ -154,6 +171,21 @@ class DashboardFragment: Fragment() {
         return view
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.dash_board_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.item_refresh -> {
+                refreshContents()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
     override fun onResume() {
         super.onResume()
 

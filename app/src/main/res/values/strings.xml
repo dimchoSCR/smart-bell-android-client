@@ -64,6 +64,10 @@
     <string name="err_playback_duration">Error: Value must be between 10 and 60 seconds</string>
     <string name="volume_pref_title">Bell volume</string>
     <string name="volume_pref_summary">Adjust your bell\'s volume</string>
+    <string name="manage_melodies">Manage melodies</string>
+    <string name="refresh">Refresh</string>
+    <string name="adjust_volume">Adjust volume</string>
+    <string name="upload_new_melody">Upload new melody</string>
 
 
     <string-array name="week_days_list_pref_entries_arr">

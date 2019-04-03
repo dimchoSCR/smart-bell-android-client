@@ -2,63 +2,63 @@ package apps.dcoder.smartbellcontrol
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import apps.dcoder.smartbellcontrol.adapters.MelodyInfoAdapter
-import apps.dcoder.smartbellcontrol.prefs.PreferenceKeys
+import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
 import apps.dcoder.smartbellcontrol.viewmodels.MainViewModel
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.firebase.FirebaseApp
+import apps.dcoder.smartbellcontrol.viewmodels.SettingsViewModel
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
+import kotlinx.android.synthetic.main.layout_load.view.*
 
 private const val CODE_REQUEST_AUDIO_FILE: Int = 1
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: MainViewModel
+    private lateinit var mainViewModel: MainViewModel
+    private lateinit var settingsViewModel: SettingsViewModel
 
-    private fun initializePushNotificationService() {
-        // Initialize firebase cloud messaging
-        FirebaseApp.initializeApp(this)
-        Log.d("FirebaseDK", "Initialized firebase for app")
-    }
+    private var trackingTouch = false
 
-    private fun requestGooglePlayServicesAvailability(reinitializeFCM: Boolean = true) {
+    private fun initVolume() {
+        val ringVolume = BellStatus.coreStatus.ringVolume
+        sbVolume.progress = ringVolume
+        tvVolumeValue.text = Integer.toString(ringVolume)
+        sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = true
+            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = false
+                onProgressChanged(seekBar, seekBar!!.progress, false)
+            }
 
-        val googleApiAvailability = GoogleApiAvailability.getInstance()
-        googleApiAvailability.makeGooglePlayServicesAvailable(this)
-            .addOnSuccessListener {
-                if (reinitializeFCM) {
-                    initializePushNotificationService()
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if(!trackingTouch) {
+                    settingsViewModel.setRingVolume(progress)
+                } else {
+                    tvVolumeValue.text = Integer.toString(progress)
                 }
             }
-            .addOnFailureListener { finish() }
-
-    }
-
-    private fun generateAndStoreAppInstanceGUID() {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        if (!sharedPreferences.contains(PreferenceKeys.PREFERENCE_KEY_APP_GUID)) {
-            val appGUID = UUID.randomUUID().toString()
-            sharedPreferences.edit()
-                .putString(PreferenceKeys.PREFERENCE_KEY_APP_GUID, appGUID)
-                .apply()
-        }
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        requestGooglePlayServicesAvailability()
-        generateAndStoreAppInstanceGUID()
+        settingsViewModel = ViewModelProviders.of(this).get(SettingsViewModel::class.java)
 
         val linearLayoutManager = LinearLayoutManager(this)
         with (rvMelodies) {
@@ -67,37 +67,53 @@ class MainActivity : AppCompatActivity() {
             adapter = MelodyInfoAdapter(listOf())
         }
 
-        // Opens a song picker window
-        btnUploadMelody.setOnClickListener{ pickMelody() }
+        initVolume()
 
-        // Listen for service response
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        viewModel.status.observe(this, Observer {
-            progressBar.visibility = View.GONE
-            tvStatus.text = it
+        settingsViewModel.successNotifyLiveData.observe(this, Observer {
+            if (!it.consumed) {
+                tvVolumeValue.text = Integer.toString(BellStatus.coreStatus.ringVolume)
+                it.consume()
+            }
         })
 
-        viewModel.melodyList.observe(this, Observer { melodies ->
+        settingsViewModel.errorNotifyLiveData.observe(this, Observer {
+            if (!it.consumed) {
+                val toast = Toast.makeText(this, getString(R.string.setting_change_failure), Toast.LENGTH_LONG)
+                toast.view.background.setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN)
+                toast.show()
+
+                sbVolume.progress = BellStatus.coreStatus.ringVolume
+                tvVolumeValue.text = Integer.toString(BellStatus.coreStatus.ringVolume)
+                it.consume()
+            }
+        })
+
+        ltLoad.pbLoading.visibility = View.VISIBLE
+
+        // Listen for service response
+        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        mainViewModel.loadMelodyList()
+        mainViewModel.status.observe(this, Observer {
+            ltLoad.visibility = View.GONE
+        })
+
+        mainViewModel.melodyList.observe(this, Observer { melodies ->
             val adapter = rvMelodies.adapter as MelodyInfoAdapter
             adapter.melodies = melodies
             adapter.notifyDataSetChanged()
         })
 
-        btnListMelodies.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
-            viewModel.loadMelodyList()
-        }
+//        btnListMelodies.setOnClickListener {
+//            progressBar.visibility = View.VISIBLE
+//            mainViewModel.loadMelodyList()
+//        }
 
 //        btnSetAsRingtone.setOnClickListener{
 //            progressBar.visibility = View.VISIBLE
-//            viewModel.setAsRingtone("The_Stratosphere_MP3.mp3")
+//            mainViewModel.setAsRingtone("The_Stratosphere_MP3.mp3")
 //        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        requestGooglePlayServicesAvailability(false)
-    }
 
     private fun pickMelody() {
         val pickMelodyIntent = Intent(Intent.ACTION_GET_CONTENT)
@@ -105,12 +121,29 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(pickMelodyIntent, CODE_REQUEST_AUDIO_FILE)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.melody_manager_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle item selection
+        return when (item.itemId) {
+            R.id.item_upload -> {
+                pickMelody()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == CODE_REQUEST_AUDIO_FILE) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.d("DK", "Melody pick successful")
-                viewModel.uploadFile(data?.data)
-                progressBar.visibility = View.VISIBLE
+                mainViewModel.uploadFile(data?.data)
+//                progressBar.visibility = View.VISIBLE
             } else {
                 Toast.makeText(this, "Picking cancelled!", Toast.LENGTH_LONG).show();
             }

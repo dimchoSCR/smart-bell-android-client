@@ -140,8 +140,8 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
             CallStatusHandler(
                 onFailure = { backingErrorNotifyLiveData.value = Event(null) },
                 onSuccess = {
-                    backingSuccessNotifyLiveData.value = Event(null)
                     BellStatus.coreStatus.playbackMode = playbackMode
+                    backingSuccessNotifyLiveData.value = Event(null)
                 }
             )
         )
@@ -152,8 +152,8 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
             CallStatusHandler(
                 onFailure = { backingErrorNotifyLiveData.value = Event(null) },
                 onSuccess = {
-                    backingSuccessNotifyLiveData.value = Event(null)
                     BellStatus.coreStatus.playbackTime = playbackDuration
+                    backingSuccessNotifyLiveData.value = Event(null)
                 }
             )
         )
@@ -164,8 +164,8 @@ class SettingsViewModel(private val appContext: Application): AndroidViewModel(a
             CallStatusHandler(
                 onFailure = { backingErrorNotifyLiveData.value = Event(null)},
                 onSuccess = {
-                    backingSuccessNotifyLiveData.value = Event(null)
                     BellStatus.coreStatus.ringVolume = ringVolume
+                    backingSuccessNotifyLiveData.value = Event(null)
                 })
         )
     }
