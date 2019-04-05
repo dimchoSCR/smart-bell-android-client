@@ -9,15 +9,20 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.lifecycle.ViewModelProviders
+import androidx.work.WorkManager
 import apps.dcoder.smartbellcontrol.fragments.DashboardFragment
 import apps.dcoder.smartbellcontrol.fragments.LogDetailsFragment
 import apps.dcoder.smartbellcontrol.prefs.PreferenceKeys
 import apps.dcoder.smartbellcontrol.services.BellFirebaseMessagingService
 import apps.dcoder.smartbellcontrol.viewmodels.BellDashboardViewModel
+import apps.dcoder.smartbellcontrol.work.SendFCMAppTokenWorker
+import apps.dcoder.smartbellcontrol.work.Workers
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.FirebaseApp
 import java.util.*
-
+import androidx.work.WorkInfo
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.iid.FirebaseInstanceId
 
 class BellDashboardActivity : AppCompatActivity() {
 
@@ -50,12 +55,38 @@ class BellDashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun ensureFireBaseTokenIsRegistered() {
+        val workManager = WorkManager.getInstance()
+        val workInfo = workManager.getWorkInfosByTag(SendFCMAppTokenWorker.TAG_SEND_TOKEN_WORKER)
+
+        if (!workInfo.get().isEmpty() && workInfo.get()[0].state != WorkInfo.State.SUCCEEDED) {
+            // Cancel an old deferred job if it is still not completed and start a new one
+            workManager.cancelAllWorkByTag(SendFCMAppTokenWorker.TAG_SEND_TOKEN_WORKER)
+
+            FirebaseInstanceId.getInstance().instanceId
+                .addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Log.e("FirebaseDK", "getInstanceId failed", task.exception)
+                        return@OnCompleteListener
+                    }
+
+                    // Get new Instance ID token
+                    val token = task.result!!.token
+                    Log.d("FirebaseDK", "Token read. Rescheduling work!")
+
+                    val workRequest = Workers.createUpdateTokenWorkRequest(token)
+                    workManager.enqueue(workRequest)
+                })
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.bell_dashboard)
 
         requestGooglePlayServicesAvailability()
         generateAndStoreAppInstanceGUID()
+        ensureFireBaseTokenIsRegistered()
 
         val dashboardViewModel = ViewModelProviders.of(this).get(BellDashboardViewModel::class.java)
         dashboardViewModel.loadRingLog()

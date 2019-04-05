@@ -4,7 +4,9 @@ import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import apps.dcoder.smartbellcontrol.Event
 import apps.dcoder.smartbellcontrol.formatRawMelodyInfo
 import apps.dcoder.smartbellcontrol.restapiclient.RetrofitAPIs
 import apps.dcoder.smartbellcontrol.restapiclient.SmartBellAPI
@@ -25,6 +27,8 @@ import java.lang.IllegalStateException
 class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
 
     private val bellAPI: SmartBellAPI = RetrofitAPIs.bellAPI
+    private val backingErrorLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
+    private val backingSuccessLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
 
     private fun sendUploadRequest(fileBytes: ByteArray, fileName: String, mediaType: String?) {
         // Create necessary parameter for the bell api call
@@ -37,21 +41,26 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if(response.isSuccessful) {
                     Log.d("DK", response.message() ?: "Melody upload successful!")
-                    status.value = "Upload was successful!"
+                    backingSuccessLiveData.value = Event(null)
                 } else {
                     Log.e("DK", response.errorBody()?.string() ?: "Unknown error occurred!")
-                    status.value = "Upload unsuccessful because of a server error!"
+                    backingErrorLiveData.value = Event(null)
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 Log.e("DK", "Upload failed!", t)
-                status.value = "Upload failed!"
+                backingErrorLiveData.value = Event(null)
             }
         })
     }
 
-    val status = MutableLiveData<String>()
+    val errorLiveData: LiveData<Event<Void>>
+        get() = backingErrorLiveData
+
+    val successLiveData: LiveData<Event<Void>>
+        get() = backingSuccessLiveData
+
     val melodyList = MutableLiveData<List<MelodyInfo>>()
 
     fun uploadFile(uriToAudioFile: Uri?) {
@@ -82,16 +91,16 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Log.e("DK", "Setting ringtone failed failed!", t)
-                status.value = "Setting melody failed!"
+                backingErrorLiveData.value = Event(null)
             }
 
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if(response.isSuccessful) {
                     Log.d("DK", "Setting ringtone was successful!")
-                    status.value = response.body()!!.string()
+                    backingSuccessLiveData.value = Event(null)
                 } else {
                     Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
-                    status.value = "Ringtone not set because of a server error."
+                    backingErrorLiveData.value = Event(null)
                 }
             }
 
@@ -104,13 +113,12 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
         retrofitCall.enqueue(object : Callback<List<RawMelodyInfo>> {
             override fun onFailure(call: Call<List<RawMelodyInfo>>, t: Throwable) {
                 Log.e("DK", "Retrieving melody list failed failed!", t)
-                status.value = "Retrieving melodies failed!"
+                backingErrorLiveData.value = Event(null)
             }
 
             override fun onResponse(call: Call<List<RawMelodyInfo>>, response: Response<List<RawMelodyInfo>>) {
                 if(response.isSuccessful) {
                     Log.d("DK", "Retrieving melody list was successful!")
-                    status.value = "Retrieving melody list was successful!"
                     val melodies = response.body()
                     val localizedMelodies = melodies?.map {
                             rawMelodyInfo ->
@@ -120,7 +128,7 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
                     melodyList.value = localizedMelodies
                 } else {
                     Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
-                    status.value = "Retrieving failed because of a server error."
+                    backingErrorLiveData.value = Event(null)
                 }
             }
         })

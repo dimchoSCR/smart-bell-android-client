@@ -88,18 +88,32 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        ltLoad.pbLoading.visibility = View.VISIBLE
+        ltLoadMelodies.pbLoading.visibility = View.VISIBLE
 
         // Listen for service response
         mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         mainViewModel.loadMelodyList()
-        mainViewModel.status.observe(this, Observer {
-            ltLoad.visibility = View.GONE
+
+        mainViewModel.errorLiveData.observe(this, Observer { event ->
+            if (!event.consumed) {
+                ltLoadMelodies.pbLoading.visibility = View.GONE
+                ltLoadMelodies.tvError.text = getString(R.string.error_connecting_to_bell)
+                event.consume()
+            }
+        })
+
+        mainViewModel.successLiveData.observe(this, Observer {
+
+            ltLoadMelodies.visibility = View.GONE
+            Toast.makeText(this, "Operation successful", Toast.LENGTH_LONG).show()
+            mainViewModel.loadMelodyList()
         })
 
         mainViewModel.melodyList.observe(this, Observer { melodies ->
+            ltLoadMelodies.visibility = View.GONE
+
             val adapter = rvMelodies.adapter as MelodyInfoAdapter
-            adapter.melodies = melodies
+            adapter.melodies = melodies.sortedBy { it.melodyName }
             adapter.notifyDataSetChanged()
         })
 
@@ -143,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK) {
                 Log.d("DK", "Melody pick successful")
                 mainViewModel.uploadFile(data?.data)
-//                progressBar.visibility = View.VISIBLE
+                ltLoadMelodies.visibility
             } else {
                 Toast.makeText(this, "Picking cancelled!", Toast.LENGTH_LONG).show();
             }
