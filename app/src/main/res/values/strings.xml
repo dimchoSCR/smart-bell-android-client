@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Smart Bell Control</string>
+    <string name="app_name">Smart Bell Control</string>
     <string name="transition_expand" translatable="false">ExpandTransition</string>
     <string name="fcm_topic_name" translatable="false">RingUpdates</string>
     <string name="volume_template" translatable="false">%d%%</string>

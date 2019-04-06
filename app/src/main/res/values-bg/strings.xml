@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_name">Умен Звънец</string>
     <string name="fcm_topic_name" translatable="false">RingUpdates</string>
     <string name="upload_melody">Качи мелодия</string>
     <string name="list_all_melodies">Вземи всички мелодии</string>
@@ -30,7 +31,7 @@
     <string name="err_equal_star_end_time">Началното и крайното време не може да са равни!</string>
     <string name="err_could_not_get_disturb_status">"Неуспешно зареждане на нстройките на \"Не ме безпокойте\"</string>
     <string name="err_smaller_end_time">Крайното време не може да е по-малко от началното!</string>
-    <string name="missed_ring">Имате пропуснати позванявания повреме на режима \"Не ме безпокойте\"</string>
+    <string name="missed_ring">Пропуснати позванявания повреме на режима \"Не ме безпокойте\"</string>
     <string name="missed_ring_at">Пропуснато позвъняване в %1$s</string>
     <string name="bell_dashboard">Моят звънец</string>
     <string name="ringtone">Мелодия:</string>
