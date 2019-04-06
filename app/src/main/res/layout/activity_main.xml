@@ -53,6 +53,22 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:gravity="center"
+        android:text="@string/no_melodies_uploaded_yet_hit_the_arrow_up_button_to_upload_some"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/rvMelodies"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/rvMelodies" />
+
+    <TextView
         android:id="@+id/tvVolumeValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -62,6 +78,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="30" />
+
 
     <include
         android:id="@+id/ltLoadMelodies"

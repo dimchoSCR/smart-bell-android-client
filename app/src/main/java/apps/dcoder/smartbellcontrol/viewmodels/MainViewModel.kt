@@ -21,7 +21,6 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.InputStream
 import java.lang.IllegalStateException
 
 class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
@@ -29,6 +28,13 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
     private val bellAPI: SmartBellAPI = RetrofitAPIs.bellAPI
     private val backingErrorLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
     private val backingSuccessLiveData: MutableLiveData<Event<Void>> = MutableLiveData()
+    private val backingCurrentRingtoneLiveData: MutableLiveData<Event<Int>> = MutableLiveData()
+    private val backingPrePlaySuccessLiveData: MutableLiveData<Event<Pair<Int, Boolean>>> = MutableLiveData()
+    private val backingDeletionLiveData: MutableLiveData<Event<Int>> = MutableLiveData()
+
+    init {
+        backingPrePlaySuccessLiveData.value = Event(Pair(0, false))
+    }
 
     private fun sendUploadRequest(fileBytes: ByteArray, fileName: String, mediaType: String?) {
         // Create necessary parameter for the bell api call
@@ -55,13 +61,36 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
         })
     }
 
+    private fun checkMelodyiesAvailability(melodyIndex: Int) {
+        if (melodyList.value == null) {
+            Log.e("RingtoneDK", "Can not set ringtone because no ringtones are downloaded!")
+            backingErrorLiveData.value = Event(null)
+            return
+        }
+
+        if (melodyList.value!!.size < melodyIndex) {
+            Log.e("RingtoneDK", "No such ringtone index in melody entries!")
+            backingErrorLiveData.value = Event(null)
+            return
+        }
+    }
+
     val errorLiveData: LiveData<Event<Void>>
         get() = backingErrorLiveData
 
     val successLiveData: LiveData<Event<Void>>
         get() = backingSuccessLiveData
 
-    val melodyList = MutableLiveData<List<MelodyInfo>>()
+    val currentRingtoneLiveData: LiveData<Event<Int>>
+        get() = backingCurrentRingtoneLiveData
+
+    val prePlaySuccessLiveData: LiveData<Event<Pair<Int, Boolean>>>
+        get() = backingPrePlaySuccessLiveData
+
+    val melodyDeletedLiveData: LiveData<Event<Int>>
+        get() = backingDeletionLiveData
+
+    val melodyList = MutableLiveData<MutableList<MelodyInfo>>()
 
     fun uploadFile(uriToAudioFile: Uri?) {
         // Extract content information from uri
@@ -82,8 +111,11 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
 
     }
 
-    fun setAsRingtone(melodyName: String) {
+    fun setAsRingtone(ringtoneIndex: Int) {
 
+        checkMelodyiesAvailability(ringtoneIndex)
+
+        val melodyName = melodyList.value!![ringtoneIndex].melodyName
         val body: RequestBody = RequestBody.create(MediaType.parse("text/plain"), melodyName)
         val retrofitCall: Call<ResponseBody> = bellAPI.updateRingtone(body)
 
@@ -97,7 +129,7 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if(response.isSuccessful) {
                     Log.d("DK", "Setting ringtone was successful!")
-                    backingSuccessLiveData.value = Event(null)
+                    backingCurrentRingtoneLiveData.value = Event(ringtoneIndex)
                 } else {
                     Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
                     backingErrorLiveData.value = Event(null)
@@ -125,7 +157,71 @@ class MainViewModel(private val appContext: Application) : AndroidViewModel(appC
                         formatRawMelodyInfo(appContext, rawMelodyInfo)
                     } ?: throw Throwable("List of melody info should not be null")
 
-                    melodyList.value = localizedMelodies
+                    melodyList.value = localizedMelodies.sortedBy { it.melodyName }.toMutableList()
+                } else {
+                    Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
+                    backingErrorLiveData.value = Event(null)
+                }
+            }
+        })
+    }
+
+    fun prePlayMelody(melodyIndex: Int) {
+        checkMelodyiesAvailability(melodyIndex)
+
+        bellAPI.startMelodyPrePlay(melodyList.value!![melodyIndex].melodyName).enqueue(object: Callback<Void>{
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Log.e("DK", "Could not preplay melody", t)
+                backingErrorLiveData.value = Event(null)
+            }
+
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if(response.isSuccessful) {
+                    Log.d("DK", "Preplaying successful")
+                    backingPrePlaySuccessLiveData.value = Event(Pair(melodyIndex, true))
+                } else {
+                    Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
+                    backingErrorLiveData.value = Event(null)
+                }
+            }
+
+        })
+    }
+
+    fun stopPrePlay(melodyIndex: Int) {
+        checkMelodyiesAvailability(melodyIndex)
+
+        bellAPI.stopMelodyPrePlay().enqueue(object: Callback<Void>{
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Log.e("DK", "Could not stop melody preplay", t)
+                backingErrorLiveData.value = Event(null)
+            }
+
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if(response.isSuccessful) {
+                    Log.d("DK", "Stop preplaying successful")
+                    backingPrePlaySuccessLiveData.value = Event(Pair(melodyIndex, false))
+                } else {
+                    Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
+                    backingErrorLiveData.value = Event(null)
+                }
+            }
+        })
+    }
+
+    fun deleteMelody(melodyIndex: Int) {
+        checkMelodyiesAvailability(melodyIndex)
+
+        bellAPI.deleteMelody(melodyList.value!![melodyIndex].melodyName).enqueue(object: Callback<Void>{
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Log.e("DK", "Could not delete melody", t)
+                backingErrorLiveData.value = Event(null)
+            }
+
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if(response.isSuccessful) {
+                    Log.d("DK", "Deletion successful")
+                    backingDeletionLiveData.value = Event(melodyIndex)
                 } else {
                     Log.d("DK", response.errorBody()?.string() ?: "Unknown error")
                     backingErrorLiveData.value = Event(null)

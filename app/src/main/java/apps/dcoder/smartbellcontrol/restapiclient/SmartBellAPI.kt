@@ -59,4 +59,15 @@ interface SmartBellAPI {
     @FormUrlEncoded
     @PUT("melodies/status/ringVolume")
     fun setRingVolume(@Field("ringVolume") ringVolume: Int): Call<Void>
+
+    @FormUrlEncoded
+    @PUT("melodies/preplay/start")
+    fun startMelodyPrePlay(@Field("melodyName") melodyName: String): Call<Void>
+
+    @PUT("melodies/preplay/end")
+    fun stopMelodyPrePlay(): Call<Void>
+
+    @FormUrlEncoded
+    @PUT("melodies/delete")
+    fun deleteMelody(@Field("melodyName") melodyName: String): Call<Void>
 }

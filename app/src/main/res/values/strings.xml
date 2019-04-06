@@ -68,6 +68,15 @@
     <string name="refresh">Refresh</string>
     <string name="adjust_volume">Adjust volume</string>
     <string name="upload_new_melody">Upload new melody</string>
+    <string name="pick_cancelled">Picking cancelled!</string>
+    <string name="operation_success">Operation successful</string>
+    <string name="set_as_ringtone">Set as ringtone cancelled!</string>
+    <string name="set_melody_as_ringtone">Set melody as ringtone?</string>
+    <string name="general_erro">An error occurred!</string>
+    <string name="preplay_running">To play another melody please stop the current one!</string>
+    <string name="delete">Delete</string>
+    <string name="melody_delete_success">Melody deleted successfully!</string>
+    <string name="no_melodies_uploaded_yet_hit_the_arrow_up_button_to_upload_some">No melodies uploaded yet. Hit the \"arrow up\" button to upload some!</string>
 
 
     <string-array name="week_days_list_pref_entries_arr">

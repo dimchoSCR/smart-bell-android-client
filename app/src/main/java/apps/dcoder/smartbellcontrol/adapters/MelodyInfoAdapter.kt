@@ -11,14 +11,41 @@ import apps.dcoder.smartbellcontrol.restapiclient.model.MelodyInfo
 import kotlinx.android.synthetic.main.list_item_melody_info.view.*
 
 class MelodyInfoAdapter(
-    var melodies: List<MelodyInfo>
+    var melodies: MutableList<MelodyInfo>,
+    private val itemClickListener: OnRecyclerItemClickListener
 ): RecyclerView.Adapter<MelodyInfoAdapter.MelodyInfoViewHolder>() {
 
-    class MelodyInfoViewHolder(viewHolderRootView: View): RecyclerView.ViewHolder(viewHolderRootView) {
+    interface OnRecyclerItemClickListener {
+        fun onCardClick(position: Int)
+        fun onCardLongPress(view: View, position: Int)
+        fun onPlayClicked(position: Int)
+        fun onStopClicked(position: Int)
+    }
+
+    inner class MelodyInfoViewHolder(viewHolderRootView: View): RecyclerView.ViewHolder(viewHolderRootView) {
         val melodyName: TextView =  viewHolderRootView.tvMelodyName
         val melodyFileSize: TextView = viewHolderRootView.tvFileSize
         val melodyDuration: TextView = viewHolderRootView.tvDuration
         val isRingtoneDrawable: ImageView = viewHolderRootView.ivIsRingtone
+
+        init {
+            viewHolderRootView.setOnClickListener {
+                itemClickListener.onCardClick(adapterPosition)
+            }
+
+            viewHolderRootView.setOnLongClickListener {
+                itemClickListener.onCardLongPress(itemView, adapterPosition)
+                true
+            }
+
+            viewHolderRootView.ivPlay.setOnClickListener {
+                itemClickListener.onPlayClicked(adapterPosition)
+            }
+
+            viewHolderRootView.ivStop.setOnClickListener {
+                itemClickListener.onStopClicked(adapterPosition)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MelodyInfoViewHolder {
