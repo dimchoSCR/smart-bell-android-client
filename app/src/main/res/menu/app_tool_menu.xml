@@ -5,6 +5,7 @@
     <item android:id="@+id/item_melodies"
         android:title="@string/manage_melodies"
         android:icon="@drawable/ic_library_music_black_24dp"
+        android:orderInCategory="2"
         app:showAsAction="ifRoom"/>
 
     <item android:id="@+id/item_settings"
