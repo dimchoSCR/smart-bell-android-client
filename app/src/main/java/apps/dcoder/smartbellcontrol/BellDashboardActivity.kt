@@ -101,7 +101,6 @@ class BellDashboardActivity : AppCompatActivity() {
         if (intent != null && intent.hasExtra(BellFirebaseMessagingService.EXTRA_OPEN_LOG_FRAGAMENT)) {
             supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, LogDetailsFragment())
-                .addToBackStack(null)
                 .commit()
 
         }
