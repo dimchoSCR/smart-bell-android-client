@@ -23,7 +23,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.lang.IllegalStateException
 
-class MainViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
+class MelodyViewModel(private val appContext: Application) : AndroidViewModel(appContext) {
 
     private val bellAPI: SmartBellAPI = RetrofitAPIs.bellAPI
     private val backingErrorLiveData: MutableLiveData<Event<Void>> = MutableLiveData()

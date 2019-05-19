@@ -46,7 +46,7 @@
                 android:resource="@color/colorAccent" />
         </service>
 
-        <activity android:name=".MainActivity"
+        <activity android:name=".MelodyActivity"
             android:label="@string/manage_melodies"
             android:parentActivityName=".BellDashboardActivity">
             <meta-data

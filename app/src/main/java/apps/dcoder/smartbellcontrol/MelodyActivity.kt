@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import apps.dcoder.smartbellcontrol.adapters.MelodyInfoAdapter
 import apps.dcoder.smartbellcontrol.restapiclient.model.BellStatus
-import apps.dcoder.smartbellcontrol.viewmodels.MainViewModel
+import apps.dcoder.smartbellcontrol.viewmodels.MelodyViewModel
 import apps.dcoder.smartbellcontrol.viewmodels.SettingsViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.layout_load.view.*
@@ -29,9 +29,9 @@ import kotlinx.android.synthetic.main.list_item_melody_info.view.*
 
 private const val CODE_REQUEST_AUDIO_FILE: Int = 1
 
-class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickListener {
+class MelodyActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickListener {
 
-    private lateinit var mainViewModel: MainViewModel
+    private lateinit var melodyViewModel: MelodyViewModel
     private lateinit var settingsViewModel: SettingsViewModel
 
     private var trackingTouch = false
@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
 
     private inner class PrePlayStopRunnable(val position: Int) : Runnable {
         override fun run() {
-            mainViewModel.stopPrePlay(position)
+            melodyViewModel.stopPrePlay(position)
         }
     }
 
@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
         with (rvMelodies) {
             setHasFixedSize(true)
             layoutManager = linearLayoutManager
-            adapter = MelodyInfoAdapter(mutableListOf(), this@MainActivity)
+            adapter = MelodyInfoAdapter(mutableListOf(), this@MelodyActivity)
         }
 
         initVolume()
@@ -115,12 +115,12 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
         ltLoadMelodies.pbLoading.visibility = View.VISIBLE
 
         // Listen for service response
-        mainViewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        melodyViewModel = ViewModelProviders.of(this).get(MelodyViewModel::class.java)
         if (savedInstanceState == null) {
-            mainViewModel.loadMelodyList()
+            melodyViewModel.loadMelodyList()
         }
 
-        mainViewModel.errorLiveData.observe(this, Observer { event ->
+        melodyViewModel.errorLiveData.observe(this, Observer { event ->
             if (!event.consumed) {
                 val toast = Toast.makeText(this, getString(R.string.general_erro), Toast.LENGTH_LONG)
                 toast.view.background.setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN)
@@ -133,16 +133,16 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             }
         })
 
-        mainViewModel.successLiveData.observe(this, Observer {
+        melodyViewModel.successLiveData.observe(this, Observer {
             if (!it.consumed) {
                 ltLoadMelodies.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.operation_success), Toast.LENGTH_LONG).show()
-                mainViewModel.loadMelodyList()
+                melodyViewModel.loadMelodyList()
                 it.consume()
             }
         })
 
-        mainViewModel.melodyList.observe(this, Observer { melodies ->
+        melodyViewModel.melodyList.observe(this, Observer { melodies ->
             if (melodies.isEmpty()) {
                 tvEmpty.visibility = View.VISIBLE
             } else {
@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             adapter.notifyDataSetChanged()
         })
 
-        mainViewModel.currentRingtoneLiveData.observe(this, Observer{ event ->
+        melodyViewModel.currentRingtoneLiveData.observe(this, Observer{ event ->
             val ringtoneIndex = event.getContentIfNotConsumed()
             if (ringtoneIndex != null) {
                 val melodiesAdapter = (rvMelodies.adapter as MelodyInfoAdapter)
@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             }
         })
 
-        mainViewModel.prePlaySuccessLiveData.observe(this, Observer { event ->
+        melodyViewModel.prePlaySuccessLiveData.observe(this, Observer { event ->
             val prePlayPair = event.getContentIfNotConsumed()
             if (prePlayPair != null) {
                 val layoutManager = rvMelodies.layoutManager!!
@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             }
         })
 
-        mainViewModel.melodyDeletedLiveData.observe(this , Observer { event ->
+        melodyViewModel.melodyDeletedLiveData.observe(this , Observer { event ->
             val melodyPosition = event.getContentIfNotConsumed()
             if (melodyPosition != null) {
                 val adapter = rvMelodies.adapter as MelodyInfoAdapter
@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
                 Toast.makeText(this, getString(R.string.melody_delete_success), Toast.LENGTH_LONG).show()
             }
 
-            if (mainViewModel.melodyList.value.isNullOrEmpty()) {
+            if (melodyViewModel.melodyList.value.isNullOrEmpty()) {
                 tvEmpty.visibility = View.VISIBLE
             }
         })
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             CODE_REQUEST_AUDIO_FILE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     Log.d("DK", "Melody pick successful")
-                    mainViewModel.uploadFile(data?.data)
+                    melodyViewModel.uploadFile(data?.data)
                     ltLoadMelodies.visibility = View.VISIBLE
                 } else {
                     Toast.makeText(this, getString(R.string.pick_cancelled), Toast.LENGTH_LONG).show();
@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
             handler.removeCallbacks(prePlayStopRunnable)
         }
 
-        mainViewModel.stopPrePlay(0)
+        melodyViewModel.stopPrePlay(0)
     }
 
     override fun onCardClick(position: Int) {
@@ -277,7 +277,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
         builder.setMessage(getString(R.string.set_melody_as_ringtone))
             .setPositiveButton(android.R.string.yes) { dialog, id ->
                 // Stop prePlay if running
-                val prePlayPair = mainViewModel.prePlaySuccessLiveData.value
+                val prePlayPair = melodyViewModel.prePlaySuccessLiveData.value
                 if (prePlayPair != null && prePlayPair.peekContent()!!.second) {
                     val melodies = (rvMelodies.adapter as MelodyInfoAdapter).melodies
                     val layoutManager = rvMelodies.layoutManager!!
@@ -292,10 +292,10 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
                         }
                     }
 
-                    mainViewModel.stopPrePlay(playingSongIndex)
+                    melodyViewModel.stopPrePlay(playingSongIndex)
                 }
 
-                mainViewModel.setAsRingtone(position)
+                melodyViewModel.setAsRingtone(position)
             }
             .setNegativeButton(android.R.string.no) { dialog, id ->
                 Toast.makeText(this, getString(R.string.set_as_ringtone), Toast.LENGTH_LONG).show()
@@ -312,7 +312,7 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
         popUpMenu.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.item_delete -> {
-                    mainViewModel.deleteMelody(position)
+                    melodyViewModel.deleteMelody(position)
                     true
                 }
 
@@ -327,9 +327,9 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
     }
 
     override fun onPlayClicked(position: Int) {
-        val prePlayPair = mainViewModel.prePlaySuccessLiveData.value!!.peekContent()
+        val prePlayPair = melodyViewModel.prePlaySuccessLiveData.value!!.peekContent()
         if (prePlayPair != null && !prePlayPair.second) {
-            mainViewModel.prePlayMelody(position)
+            melodyViewModel.prePlayMelody(position)
             prePlayStopRunnable = PrePlayStopRunnable(position)
             handler.postDelayed(prePlayStopRunnable, DELAY_BEFORE_PRE_PLAY_STOP)
         } else {
@@ -338,6 +338,6 @@ class MainActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClickL
     }
 
     override fun onStopClicked(position: Int) {
-        mainViewModel.stopPrePlay(position)
+        melodyViewModel.stopPrePlay(position)
     }
 }

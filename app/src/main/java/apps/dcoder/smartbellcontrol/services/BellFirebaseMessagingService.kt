@@ -15,7 +15,6 @@ import com.google.firebase.messaging.RemoteMessage
 import android.media.RingtoneManager
 import androidx.work.*
 import apps.dcoder.smartbellcontrol.BellDashboardActivity
-import apps.dcoder.smartbellcontrol.MainActivity
 import apps.dcoder.smartbellcontrol.R
 import apps.dcoder.smartbellcontrol.formatRawRingEntry
 import apps.dcoder.smartbellcontrol.restapiclient.model.RawRingEntry

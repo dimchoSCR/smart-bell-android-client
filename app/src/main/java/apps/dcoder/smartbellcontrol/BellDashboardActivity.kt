@@ -127,7 +127,7 @@ class BellDashboardActivity : AppCompatActivity() {
             }
 
             R.id.item_melodies -> {
-                startActivity(Intent(this, MainActivity::class.java))
+                startActivity(Intent(this, MelodyActivity::class.java))
                 true
             }
 
