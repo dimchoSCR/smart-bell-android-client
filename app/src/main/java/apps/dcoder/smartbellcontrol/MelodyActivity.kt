@@ -160,7 +160,7 @@ class MelodyActivity : AppCompatActivity(), MelodyInfoAdapter.OnRecyclerItemClic
             val ringtoneIndex = event.getContentIfNotConsumed()
             if (ringtoneIndex != null) {
                 val melodiesAdapter = (rvMelodies.adapter as MelodyInfoAdapter)
-                Toast.makeText(this, "Ringtone set successfully!", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.ringtone_set_success), Toast.LENGTH_LONG).show()
                 var indexOfOldRingtone: Int = -1
 
                 // Find old ringtone index
