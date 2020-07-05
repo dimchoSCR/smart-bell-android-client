@@ -1,14 +1,19 @@
 package apps.dcoder.smartbellcontrol
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
+import android.content.IntentFilter
 import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProviders
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.WorkManager
 import apps.dcoder.smartbellcontrol.fragments.DashboardFragment
 import apps.dcoder.smartbellcontrol.fragments.LogDetailsFragment
@@ -25,6 +30,9 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 
 class BellDashboardActivity : AppCompatActivity() {
+
+    private lateinit var updatesReceiver: BroadcastReceiver
+    private lateinit var dashboardViewModel: BellDashboardViewModel
 
     private fun initializePushNotificationService() {
         // Initialize firebase cloud messaging
@@ -80,15 +88,31 @@ class BellDashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun registerRingUpdatesReceiver() {
+        updatesReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                dashboardViewModel.loadBellStatus()
+                dashboardViewModel.loadRingLog()
+            }
+        }
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(updatesReceiver, IntentFilter(BellFirebaseMessagingService.ACTION_RING_UPDATE))
+    }
+
+    private fun unregisterRingUpdatesReceiver() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(updatesReceiver)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.bell_dashboard)
 
+        registerRingUpdatesReceiver()
         requestGooglePlayServicesAvailability()
         generateAndStoreAppInstanceGUID()
         ensureFireBaseTokenIsRegistered()
 
-        val dashboardViewModel = ViewModelProviders.of(this).get(BellDashboardViewModel::class.java)
+        dashboardViewModel = ViewModelProviders.of(this).get(BellDashboardViewModel::class.java)
         dashboardViewModel.loadRingLog()
         dashboardViewModel.loadBellStatus()
 
@@ -104,6 +128,12 @@ class BellDashboardActivity : AppCompatActivity() {
                 .commit()
 
         }
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        dashboardViewModel.loadRingLog()
+        dashboardViewModel.loadBellStatus()
     }
 
     override fun onResume() {
@@ -133,5 +163,10 @@ class BellDashboardActivity : AppCompatActivity() {
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterRingUpdatesReceiver()
     }
 }

@@ -23,8 +23,9 @@ import apps.dcoder.smartbellcontrol.work.SendFCMAppTokenWorker
 import apps.dcoder.smartbellcontrol.work.Workers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.CollectionType
-
-
+import android.app.ActivityManager.RunningAppProcessInfo
+import android.app.ActivityManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 
 class BellFirebaseMessagingService : FirebaseMessagingService() {
@@ -52,7 +53,8 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         private const val FIREBASE_NOTIFICATION_TYPE = "NotificationType"
         private const val KEY_NOTIFICATION_DATA = "Data"
 
-        public const val EXTRA_OPEN_LOG_FRAGAMENT = "Log"
+        const val ACTION_RING_UPDATE = "RingUpdates"
+        const val EXTRA_OPEN_LOG_FRAGAMENT = "Log"
     }
 
     private inner class Notifier {
@@ -191,6 +193,26 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
 
     }
 
+    private fun refreshUIData() {
+        if (applicationInForeground()) {
+            Log.d("FG","Activity in foreground!")
+            val intent = Intent(ACTION_RING_UPDATE)
+            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+        }
+    }
+
+    private fun applicationInForeground(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val services = activityManager.runningAppProcesses
+        var isActivityFound = false
+
+        if (services[0].processName.equals(packageName, ignoreCase = true) && services[0].importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+            isActivityFound = true
+        }
+
+        return isActivityFound
+    }
+
     override fun onMessageReceived(remoteMessage: RemoteMessage?) {
         super.onMessageReceived(remoteMessage)
 
@@ -206,6 +228,7 @@ class BellFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         processDataPayload(remoteMessage.data)
+        refreshUIData()
     }
 
     override fun onNewToken(token: String?) {
